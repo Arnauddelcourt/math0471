@@ -1,10 +1,17 @@
 #ifndef SPH_H
 #define SPH_H
 
-void toparaview(std::string const &fname, 
-                std::vector<double> const &x,
-                std::vector<double> const &y);
-                
+#include <string>
+#include <vector>
+#include <iostream>
+#include <map>
+#include <math.h>
+
+void meshcube(double o[3], double L[3], double s, std::vector<double> &pos);
+void paraview(std::string const &filename,
+              std::vector<double> const &pos,
+              std::map<std::string, std::vector<double> *> const &scalars,
+              std::map<std::string, std::vector<double> *> const &vectors);         
 
 
 
