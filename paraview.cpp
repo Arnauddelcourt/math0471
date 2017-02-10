@@ -24,7 +24,7 @@ void paraview(std::string const &filename,
 
     // open file
     std::cout << "writing results to " << s.str() << '\n';
-    std::ofstream f(s.str());
+    std::ofstream f(s.str().c_str());
     f << std::scientific;
     // header
     f << "# vtk DataFile Version 3.0\n";
