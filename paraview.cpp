@@ -6,15 +6,15 @@
 #include <stdint.h>
 #include "swapbytes.h"
 
-#include "zlib.h"
+#include <zlib.h>
 
 const int __one__ = 1;
 const bool isCpuLittleEndian = 1 == *(char*)(&__one__); // CPU endianness
 
-// this routine writes a double vector to file f.
-//  the vector is converted to float (32bits) and to big endian format (required by the legacy VTK format)
+// this routine writes a vector of double as a vector of float to a legacy VTK file f.
+//  the vector is converted to float (32bits) and to "big endian" format (required by the legacy VTK format)
 
-void write_vector(std::ofstream &f, std::vector<double> const &pos, int nbp, int nj, bool ascii)
+void write_vectorLEGACY(std::ofstream &f, std::vector<double> const &pos, int nbp, int nj, bool ascii)
 {
     assert(pos.size()==nbp*nj);
     if(ascii) 
@@ -35,7 +35,7 @@ void write_vector(std::ofstream &f, std::vector<double> const &pos, int nbp, int
                 for(int j=0; j<nj; ++j)
                 {
                     float fx = (float)pos[nj*i+j]; 
-                    uint32_t x = swap_uint32(*(uint32_t*)&fx); 
+                    uint32_t x = swap_uint32(*(uint32_t*)&fx); // convert if CPU is little endian
                     f.write((char*)&x, sizeof(uint32_t));
                 }
             }
@@ -90,7 +90,7 @@ void paraview(std::string const &filename,
 
     // points
     f << "POINTS " << nbp << " float\n";
-    write_vector(f, pos, nbp, 3, ascii);
+    write_vectorLEGACY(f, pos, nbp, 3, ascii);
     
     // vertices
     f << "VERTICES " << nbp << " " << 2*nbp << "\n";
@@ -121,7 +121,7 @@ void paraview(std::string const &filename,
     {
         assert(it->second->size()==nbp);
         f << it->first << " 1 " << nbp << " float\n";
-        write_vector(f, *it->second, nbp, 1, ascii);
+        write_vectorLEGACY(f, *it->second, nbp, 1, ascii);
     }
 
     // vector fields
@@ -130,7 +130,7 @@ void paraview(std::string const &filename,
     {
         assert(it->second->size()==3*nbp);
         f << it->first << " 3 " << nbp << " float\n";
-        write_vector(f, *it->second, nbp, 3, ascii);
+        write_vectorLEGACY(f, *it->second, nbp, 3, ascii);
     }
     f.close();
 }
@@ -349,19 +349,9 @@ void paraviewXML(std::string const &filename,
     f << " RangeMax=\"" << nbp-1 << "\" ";
     f << " offset=\"" << offset << "\" />\n";
 
-    std::vector<int> connectivity(nbp);
+    std::vector<int> connectivity(nbp);   // <= hard to avoid if zlib is used
     for(int i=0; i<nbp; ++i) connectivity[i]=i;
     offset += write_vectorXML(f2, connectivity, usez);
-    /*
-    // data block size
-    uint32_t sz = nbp*sizeof(int);
-    f2.write((char*)&sz, sizeof(uint32_t));
-    offset+=sizeof(uint32_t);
-    // data
-    for(int i=0; i<nbp; ++i)
-        f2.write((char*)&i, sizeof(int));
-    offset += sz;
-    */
 
     f << "        <DataArray type=\"Int32\" ";
     f << " Name=\"offsets\" ";
@@ -370,18 +360,9 @@ void paraviewXML(std::string const &filename,
     f << " RangeMax=\"" << nbp << "\" ";
     f << " offset=\"" << offset << "\" />\n";
     
+    // reuse "connectivity" for offsets
     for(int i=0; i<nbp; ++i) connectivity[i]=i+1;
     offset += write_vectorXML(f2, connectivity, usez);
-    /*
-    // data block size
-    sz = nbp*sizeof(int);
-    f2.write((char*)&sz, sizeof(uint32_t));
-    offset+=sizeof(uint32_t);
-    // data
-    for(int i=1; i<nbp+1; ++i)
-        f2.write((char*)&i, sizeof(int));
-    offset += sz;
-    */
 
     f << "      </Verts>\n";
 
@@ -441,7 +422,6 @@ void paraviewXML(std::string const &filename,
     offset += write_vectorXML(f2, empty, usez); 
     f << "      </Polys>\n";
 
-
     f2.close();
 
     // ------------------------------------------------------------------------------------
@@ -451,13 +431,13 @@ void paraviewXML(std::string const &filename,
     f << "  <AppendedData encoding=\"raw\">\n";
     f << "    _";
 
+    // copy temp binary file
     std::ifstream f3(s2.str().c_str(), std::ios::binary | std::ios::in);
     f << f3.rdbuf();
     f3.close();
-
+    // remove temp file
     std::remove(s2.str().c_str());
 
-    // binary here
     f << "  </AppendedData>\n";
     f << "</VTKFile>\n";
 
