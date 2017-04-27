@@ -13,7 +13,13 @@ void paraview(std::string const &filename,
               int step,
               std::vector<double> const &pos,
               std::map<std::string, std::vector<double> *> const &scalars,
-              std::map<std::string, std::vector<double> *> const &vectors, bool ascii);       
-
+              std::map<std::string, std::vector<double> *> const &vectors, 
+              bool ascii);       
+void paraviewXML(std::string const &filename, 
+                 int step,
+                 std::vector<double> const &pos,
+                 std::map<std::string, std::vector<double> *> const &scalars,
+                 std::map<std::string, std::vector<double> *> const &vectors, 
+                 bool ascii);     
 #endif
 
