@@ -6,6 +6,7 @@
 #include <stdint.h>
 #include "swapbytes.h"
 
+#include "zlib.h"
 
 const int __one__ = 1;
 const bool isCpuLittleEndian = 1 == *(char*)(&__one__); // CPU endianness
@@ -134,24 +135,115 @@ void paraview(std::string const &filename,
     f.close();
 }
 
-size_t write_vectorXML(std::ofstream &f, std::vector<double> const &pos, int nbp, int nj)
+
+size_t write_vectorXML(std::ofstream &f, std::vector<double> const &pos, bool usez)
 {
-    assert(pos.size()==nbp*nj);
     size_t written=0;
-    // data block size
-    uint32_t sz = nbp*nj*sizeof(uint32_t);
-    f.write((char*)&sz, sizeof(uint32_t));
-    written+=sizeof(uint32_t);
-    // data
-    for(int i=0; i<nbp; ++i)
-        for(int j=0; j<nj; ++j)
+
+    if(!usez)
+    {
+        // data block size
+        uint32_t sz = pos.size()*sizeof(float);
+        f.write((char*)&sz, sizeof(uint32_t)); written+=sizeof(uint32_t);
+        // data
+        for(int i=0; i<pos.size(); ++i)
         {
-            float fx = (float)pos[nj*i+j]; 
-            f.write((char*)&fx, sizeof(uint32_t));
+            float fx = (float)pos[i]; 
+            f.write((char*)&fx, sizeof(float));
         }
-    written+=sz;
+        written+=sz;
+    }
+    else
+    {
+        // convert double to float
+        std::vector<float> buffer(pos.size());
+        for(int i=0; i<pos.size(); ++i)
+            buffer[i] = (float)pos[i];
+
+        size_t sourcelen = pos.size() *sizeof(float);
+        size_t destlen = size_t(sourcelen * 1.001) + 12;  // see doc
+        char *destbuffer = new char[destlen];
+
+        int status = compress2((Bytef*)destbuffer, &destlen, (Bytef *)&(buffer[0]), sourcelen, Z_DEFAULT_COMPRESSION);
+        if(status!=Z_OK)
+        {
+            std::cout << "zlib Error status=" << status << "\n";
+        }
+        else
+        {
+            //std::cout << "block of size " << sourcelen << " compressed to " << destlen << '\n';
+            // blocks description
+            uint32_t nblocks=1;
+            f.write((char*)&nblocks, sizeof(uint32_t)); written += sizeof(uint32_t);
+            uint32_t srclen = (uint32_t)sourcelen;
+            f.write((char*)&srclen, sizeof(uint32_t)); written += sizeof(uint32_t);
+            uint32_t lastblocklen = 0;
+            f.write((char*)&lastblocklen, sizeof(uint32_t)); written += sizeof(uint32_t);
+            uint32_t szblocki = (uint32_t)destlen;
+            f.write((char*)&szblocki, sizeof(uint32_t)); written += sizeof(uint32_t);
+            // data
+            f.write(destbuffer, destlen);
+            written += destlen;
+        }
+
+        delete []destbuffer;
+    }
+
     return written;
 }
+
+
+size_t write_vectorXML(std::ofstream &f, std::vector<int> const &pos, bool usez)
+{
+    size_t written=0;
+
+    if(!usez)
+    {
+        // data block size
+        uint32_t sz = pos.size()*sizeof(int);
+        f.write((char*)&sz, sizeof(uint32_t)); written+=sizeof(uint32_t);
+        // data
+        for(int i=0; i<pos.size(); ++i)
+        {
+            int fx = pos[i]; 
+            f.write((char*)&fx, sizeof(int));
+        }
+        written+=sz;
+    }
+    else
+    {
+        size_t sourcelen = pos.size() *sizeof(int);
+        size_t destlen = size_t(sourcelen * 1.001) + 12;  // see doc
+        char *destbuffer = new char[destlen];
+
+        int status = compress2((Bytef *)destbuffer, &destlen, (Bytef *)&(pos[0]), sourcelen, Z_DEFAULT_COMPRESSION);
+        if(status!=Z_OK)
+        {
+            std::cout << "zlib Error status=" << status << "\n";
+        }
+        else
+        {
+            // blocks description
+            uint32_t nblocks=1;
+            f.write((char*)&nblocks, sizeof(uint32_t)); written += sizeof(uint32_t);
+            uint32_t srclen = (uint32_t)sourcelen;
+            f.write((char*)&srclen, sizeof(uint32_t)); written += sizeof(uint32_t);
+            uint32_t lastblocklen = 0;
+            f.write((char*)&lastblocklen, sizeof(uint32_t)); written += sizeof(uint32_t);
+            uint32_t szblocki = (uint32_t)destlen;
+            f.write((char*)&szblocki, sizeof(uint32_t)); written += sizeof(uint32_t);
+            // data
+            f.write(destbuffer, destlen);
+            written += destlen;
+        }
+
+        delete []destbuffer;
+    }
+
+    return written;
+}
+
+
 
 // export results to paraview (VTK polydata - XML fomat)
 //   filename: file name without vtk extension
@@ -160,15 +252,19 @@ size_t write_vectorXML(std::ofstream &f, std::vector<double> const &pos, int nbp
 //   scalars: scalar fields defined on particles (map linking [field name] <=> [vector of results v1, v2, v3, v4, ...]
 //   vectors: vector fields defined on particles (map linking [field name] <=> [vector of results v1x, v1y, v1z, v2x, v2y, ...]
 
+// see http://www.vtk.org/Wiki/VTK_XML_Formats
+
 void paraviewXML(std::string const &filename, 
                  int step,
                  std::vector<double> const &pos,
                  std::map<std::string, std::vector<double> *> const &scalars,
                  std::map<std::string, std::vector<double> *> const &vectors, 
-                 bool ascii)
+                 bool ascii, 
+                 bool usez)
 {
     //std::cout << "system is " << (isCpuLittleEndian? "little" : "big") << " endian\n";
     //bool ascii=false;
+    //bool usez=true;
 
     int nbp = pos.size()/3;
     assert(pos.size()==nbp*3); // should be multiple of 3
@@ -185,7 +281,12 @@ void paraviewXML(std::string const &filename,
 
     size_t offset = 0;
     // header
-    f << "<VTKFile type=\"PolyData\" version=\"0.1\" byte_order=\"LittleEndian\">\n";
+    f << "<VTKFile type=\"PolyData\" version=\"0.1\" byte_order=\"";
+    f << ( isCpuLittleEndian? "LittleEndian" : "BigEndian") << "\" ";
+    f << "header_type=\"UInt32\" "; // UInt64 should be better
+    if(usez)
+        f << "compressor=\"vtkZLibDataCompressor\" ";
+    f << ">\n";
     f << "  <PolyData>\n";
     f << "    <Piece NumberOfPoints=\"" << nbp << "\" ";
     f << "NumberOfVerts=\"" << nbp << "\" ";
@@ -206,7 +307,7 @@ void paraviewXML(std::string const &filename,
         f << " RangeMin=\"0\" ";
         f << " RangeMax=\"1\" ";
         f << " offset=\"" << offset << "\" />\n";
-        offset += write_vectorXML(f2, *it->second, nbp, 1);
+        offset += write_vectorXML(f2, *it->second, usez);
     }
     // vector fields
     it = vectors.begin();
@@ -220,7 +321,7 @@ void paraviewXML(std::string const &filename,
         f << " RangeMin=\"0\" ";
         f << " RangeMax=\"1\" ";
         f << " offset=\"" << offset << "\" />\n";
-        offset += write_vectorXML(f2, *it->second, nbp, 3);
+        offset += write_vectorXML(f2, *it->second, usez);
     }
     f << "      </PointData>\n";
 
@@ -237,7 +338,7 @@ void paraviewXML(std::string const &filename,
     f << " RangeMin=\"0\" ";
     f << " RangeMax=\"1\" ";
     f << " offset=\"" << offset << "\" />\n";   
-    offset += write_vectorXML(f2, pos, nbp, 3);
+    offset += write_vectorXML(f2, pos, usez);
     f << "      </Points>\n";
     // ------------------------------------------------------------------------------------
     f << "      <Verts>\n";
@@ -247,6 +348,11 @@ void paraviewXML(std::string const &filename,
     f << " RangeMin=\"0\" ";
     f << " RangeMax=\"" << nbp-1 << "\" ";
     f << " offset=\"" << offset << "\" />\n";
+
+    std::vector<int> connectivity(nbp);
+    for(int i=0; i<nbp; ++i) connectivity[i]=i;
+    offset += write_vectorXML(f2, connectivity, usez);
+    /*
     // data block size
     uint32_t sz = nbp*sizeof(int);
     f2.write((char*)&sz, sizeof(uint32_t));
@@ -255,6 +361,7 @@ void paraviewXML(std::string const &filename,
     for(int i=0; i<nbp; ++i)
         f2.write((char*)&i, sizeof(int));
     offset += sz;
+    */
 
     f << "        <DataArray type=\"Int32\" ";
     f << " Name=\"offsets\" ";
@@ -262,6 +369,10 @@ void paraviewXML(std::string const &filename,
     f << " RangeMin=\"1\" ";
     f << " RangeMax=\"" << nbp << "\" ";
     f << " offset=\"" << offset << "\" />\n";
+    
+    for(int i=0; i<nbp; ++i) connectivity[i]=i+1;
+    offset += write_vectorXML(f2, connectivity, usez);
+    /*
     // data block size
     sz = nbp*sizeof(int);
     f2.write((char*)&sz, sizeof(uint32_t));
@@ -270,10 +381,11 @@ void paraviewXML(std::string const &filename,
     for(int i=1; i<nbp+1; ++i)
         f2.write((char*)&i, sizeof(int));
     offset += sz;
+    */
 
     f << "      </Verts>\n";
 
-
+    std::vector<double> empty;
     // ------------------------------------------------------------------------------------
     f << "      <Lines>\n";
     f << "        <DataArray type=\"Int32\" ";
@@ -282,18 +394,15 @@ void paraviewXML(std::string const &filename,
     f << " RangeMin=\"0\" ";
     f << " RangeMax=\"1\" ";
     f << " offset=\"" << offset << "\" />\n"; 
-    sz = 0;
-    f2.write((char*)&sz, sizeof(uint32_t));
-    offset+=sizeof(uint32_t);      
+    offset += write_vectorXML(f2, empty, usez);
+      
     f << "        <DataArray type=\"Int32\" ";
     f << " Name=\"offsets\" ";
     f << " format=\"appended\" ";
     f << " RangeMin=\"0\" ";
     f << " RangeMax=\"1\" ";
     f << " offset=\"" << offset << "\" />\n"; 
-    sz = 0;
-    f2.write((char*)&sz, sizeof(uint32_t));
-    offset+=sizeof(uint32_t);
+    offset += write_vectorXML(f2, empty, usez);
     f << "      </Lines>\n";
 
     // ------------------------------------------------------------------------------------
@@ -304,18 +413,14 @@ void paraviewXML(std::string const &filename,
     f << " RangeMin=\"0\" ";
     f << " RangeMax=\"1\" ";
     f << " offset=\"" << offset << "\" />\n";   
-    sz = 0;
-    f2.write((char*)&sz, sizeof(uint32_t));
-    offset+=sizeof(uint32_t);
+    offset += write_vectorXML(f2, empty, usez);
     f << "        <DataArray type=\"Int32\" ";
     f << " Name=\"offsets\" ";
     f << " format=\"appended\" ";
     f << " RangeMin=\"0\" ";
     f << " RangeMax=\"1\" ";
     f << " offset=\"" << offset << "\" />\n"; 
-    sz = 0;
-    f2.write((char*)&sz, sizeof(uint32_t));
-    offset+=sizeof(uint32_t);
+    offset += write_vectorXML(f2, empty, usez);
     f << "      </Strips>\n";
 
     // ------------------------------------------------------------------------------------
@@ -326,18 +431,14 @@ void paraviewXML(std::string const &filename,
     f << " RangeMin=\"0\" ";
     f << " RangeMax=\"1\" ";
     f << " offset=\"" << offset << "\" />\n";  
-    sz = 0;
-    f2.write((char*)&sz, sizeof(uint32_t));
-    offset+=sizeof(uint32_t); 
+    offset += write_vectorXML(f2, empty, usez); 
     f << "        <DataArray type=\"Int32\" ";
     f << " Name=\"offsets\" ";
     f << " format=\"appended\" ";
     f << " RangeMin=\"0\" ";
     f << " RangeMax=\"1\" ";
     f << " offset=\"" << offset << "\" />\n";
-    sz = 0;
-    f2.write((char*)&sz, sizeof(uint32_t));
-    offset+=sizeof(uint32_t); 
+    offset += write_vectorXML(f2, empty, usez); 
     f << "      </Polys>\n";
 
 

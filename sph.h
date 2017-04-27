@@ -20,6 +20,7 @@ void paraviewXML(std::string const &filename,
                  std::vector<double> const &pos,
                  std::map<std::string, std::vector<double> *> const &scalars,
                  std::map<std::string, std::vector<double> *> const &vectors, 
-                 bool ascii);     
+                 bool ascii, 
+                 bool usez);     
 #endif
 
