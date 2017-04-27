@@ -44,7 +44,8 @@ int main(int argc, char *argv[])
         }
 
         // save results to disk
-        paraview("results", nstep, pos, scalars, vectors);
+        paraview("results_txt", nstep, pos, scalars, vectors, true);
+        paraview("results_bin", nstep, pos, scalars, vectors, false);
     }
 
     return 0;

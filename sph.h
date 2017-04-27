@@ -13,9 +13,7 @@ void paraview(std::string const &filename,
               int step,
               std::vector<double> const &pos,
               std::map<std::string, std::vector<double> *> const &scalars,
-              std::map<std::string, std::vector<double> *> const &vectors);       
-
-
+              std::map<std::string, std::vector<double> *> const &vectors, bool ascii);       
 
 #endif
 
