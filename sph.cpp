@@ -6,12 +6,15 @@ int main(int argc, char *argv[])
     std::vector<double> pos;
     double o[3] = { 10.0, 10.0, 10.0 };
     double L[3] = { 1.0, 2.0, 3.0 };
-    double s = 0.2;
+    double s=0.2;
+    //double s = 0.02;
+    int nstepT=1;
 
     meshcube(o, L, s, pos);
 
     // creation of dummy pressure/density/velocity fields &
     int nbp = pos.size()/3;
+    std::cout << nbp << " particles created\n";
     std::vector<double> pressure(nbp);
     std::vector<double> density(nbp);
     std::vector<double> velocity(nbp*3);
@@ -23,14 +26,14 @@ int main(int argc, char *argv[])
     vectors["velocity"] = &velocity;
 
     // time step loop
-    for(int nstep=0; nstep<20; ++nstep)
+    for(int nstep=0; nstep<nstepT; ++nstep)
     {
-        double a = nstep/20.0*8*atan(1.0);
+        double a = nstep/double(nstepT)*8*atan(1.0);
 
         // generate dummy results
         for(int i=0; i<nbp; ++i)
         {
-            pos[3*i+2] -= 0.5/20;
+            pos[3*i+2] -= 0.5/nstepT;
 
             double x = pos[3*i+0];
             double y = pos[3*i+1];
