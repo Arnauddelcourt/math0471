@@ -9,11 +9,11 @@ void meshcube(double o[3], double L[3], double s, std::vector<double> &pos)
 {
     // calculate nb of particles along each direction from target size "s"
     int ni = int(ceil(L[0]/s));
-    double dx = L[0]/ni; ++ni;
+    double dx = L[0]/(ni-1); ++ni;
     int nj = int(ceil(L[1]/s));
-    double dy = L[1]/nj; ++nj;
+    double dy = L[1]/(nj-1); ++nj;
     int nk = int(ceil(L[2]/s));
-    double dz = L[2]/nk; ++nk;
+    double dz = L[2]/(nk-1); ++nk;
 
     // output
     std::cout << "meshing cube at o=(" <<o[0]<< ","  <<o[1]<< ","  <<o[2]<< ") ";
