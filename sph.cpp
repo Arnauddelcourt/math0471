@@ -1,4 +1,6 @@
 #include "sph.h"
+#include "cube.h"
+#include "paraview.h"
 
 int main(int argc, char *argv[])
 {
@@ -6,8 +8,8 @@ int main(int argc, char *argv[])
     std::vector<double> pos;
     double o[3] = { 10.0, 10.0, 10.0 };
     double L[3] = { 1.0, 2.0, 3.0 };
-    double s=0.2;
-    //double s = 0.02;
+    //double s=0.2;
+    double s = 0.05;
     int nstepT=1;
 
     meshcube(o, L, s, pos);
@@ -47,10 +49,10 @@ int main(int argc, char *argv[])
         }
 
         // save results to disk
-        paraview("results_txt", nstep, pos, scalars, vectors, true);
-        paraview("results_bin", nstep, pos, scalars, vectors, false);
-        paraviewXML("results_bin", nstep, pos, scalars, vectors, true,false);
-        paraviewXML("results_binz", nstep, pos, scalars, vectors, true, true);
+        paraview("results_txt", nstep, pos, scalars, vectors, LEGACY_TXT);
+        paraview("results_bin", nstep, pos, scalars, vectors, LEGACY_BIN);
+        paraview("results_bin", nstep, pos, scalars, vectors, XML_BIN);
+        paraview("results_binz", nstep, pos, scalars, vectors, XML_BINZ);
     }
 
     return 0;

@@ -1,4 +1,5 @@
 #include "sph.h"
+#include "paraview.h"
 #include <fstream>
 #include <sstream>
 #include <iomanip>
@@ -6,7 +7,11 @@
 #include <stdint.h>
 #include "swapbytes.h"
 
+#ifdef USE_ZLIB
 #include <zlib.h>
+#else
+#define Z_OK 0
+#endif
 
 const int __one__ = 1;
 const bool isCpuLittleEndian = 1 == *(char*)(&__one__); // CPU endianness
@@ -14,10 +19,10 @@ const bool isCpuLittleEndian = 1 == *(char*)(&__one__); // CPU endianness
 // this routine writes a vector of double as a vector of float to a legacy VTK file f.
 //  the vector is converted to float (32bits) and to "big endian" format (required by the legacy VTK format)
 
-void write_vectorLEGACY(std::ofstream &f, std::vector<double> const &pos, int nbp, int nj, bool ascii)
+void write_vectorLEGACY(std::ofstream &f, std::vector<double> const &pos, int nbp, int nj, bool binary)
 {
     assert(pos.size()==nbp*nj);
-    if(ascii) 
+    if(!binary) 
     {
         for(int i=0; i<nbp; ++i)
         {
@@ -60,17 +65,17 @@ void write_vectorLEGACY(std::ofstream &f, std::vector<double> const &pos, int nb
 //   step:    time step number
 //   scalars: scalar fields defined on particles (map linking [field name] <=> [vector of results v1, v2, v3, v4, ...]
 //   vectors: vector fields defined on particles (map linking [field name] <=> [vector of results v1x, v1y, v1z, v2x, v2y, ...]
-//   ascii:   'true' for ASCII format, 'false' for binary
+//   binary:   'true' for binary format, 'false' for ASCII
 
-void paraview(std::string const &filename, 
+void paraviewLEGACY(std::string const &filename, 
               int step,
               std::vector<double> const &pos,
               std::map<std::string, std::vector<double> *> const &scalars,
               std::map<std::string, std::vector<double> *> const &vectors, 
-              bool ascii)
+              bool binary)
 {
     //std::cout << "system is " << (isCpuLittleEndian? "little" : "big") << " endian\n";
-    //bool ascii=false;
+    //bool binary=false;
 
     int nbp = pos.size()/3;
     assert(pos.size()==nbp*3); // should be multiple of 3
@@ -85,16 +90,16 @@ void paraview(std::string const &filename,
     // header
     f << "# vtk DataFile Version 3.0\n";
     f << "file written by sph.exe\n";
-    f << (ascii ? "ASCII\n" : "BINARY\n");
+    f << (binary ? "BINARY\n" : "ASCII\n");
     f << "DATASET POLYDATA\n";
 
     // points
     f << "POINTS " << nbp << " float\n";
-    write_vectorLEGACY(f, pos, nbp, 3, ascii);
+    write_vectorLEGACY(f, pos, nbp, 3, binary);
     
     // vertices
     f << "VERTICES " << nbp << " " << 2*nbp << "\n";
-    if(ascii) 
+    if(!binary) 
     {    
         for(int i=0; i<nbp; ++i)
             f << "1 " << i << '\n';
@@ -121,7 +126,7 @@ void paraview(std::string const &filename,
     {
         assert(it->second->size()==nbp);
         f << it->first << " 1 " << nbp << " float\n";
-        write_vectorLEGACY(f, *it->second, nbp, 1, ascii);
+        write_vectorLEGACY(f, *it->second, nbp, 1, binary);
     }
 
     // vector fields
@@ -130,9 +135,28 @@ void paraview(std::string const &filename,
     {
         assert(it->second->size()==3*nbp);
         f << it->first << " 3 " << nbp << " float\n";
-        write_vectorLEGACY(f, *it->second, nbp, 3, ascii);
+        write_vectorLEGACY(f, *it->second, nbp, 3, binary);
     }
     f.close();
+}
+
+
+std::string zlibstatus(int status)
+{
+#ifdef USE_ZLIB
+    switch(status)
+    {
+        case Z_OK: return "Z_OK";
+        case Z_BUF_ERROR: return "Z_BUF_ERROR";
+        case Z_MEM_ERROR: return "Z_MEM_ERROR";
+        case Z_STREAM_ERROR: return "Z_STREAM_ERROR";
+        default:
+            std::stringstream str; str << "Unknown ("<< status << ")";
+            return str.str();
+    }
+#else
+    return "zlib missing";
+#endif
 }
 
 
@@ -163,11 +187,15 @@ size_t write_vectorXML(std::ofstream &f, std::vector<double> const &pos, bool us
         size_t sourcelen = pos.size() *sizeof(float);
         size_t destlen = size_t(sourcelen * 1.001) + 12;  // see doc
         char *destbuffer = new char[destlen];
-
-        int status = compress2((Bytef*)destbuffer, &destlen, (Bytef *)&(buffer[0]), sourcelen, Z_DEFAULT_COMPRESSION);
+#ifdef USE_ZLIB
+        int status = compress2((Bytef*)destbuffer, &destlen, 
+                               (Bytef *)&(buffer[0]), sourcelen, Z_DEFAULT_COMPRESSION);
+#else
+        int status = Z_OK+1;
+#endif
         if(status!=Z_OK)
         {
-            std::cout << "zlib Error status=" << status << "\n";
+            std::cout << "ERROR: zlib Error status=" << zlibstatus(status) << "\n";
         }
         else
         {
@@ -215,11 +243,15 @@ size_t write_vectorXML(std::ofstream &f, std::vector<int> const &pos, bool usez)
         size_t sourcelen = pos.size() *sizeof(int);
         size_t destlen = size_t(sourcelen * 1.001) + 12;  // see doc
         char *destbuffer = new char[destlen];
-
-        int status = compress2((Bytef *)destbuffer, &destlen, (Bytef *)&(pos[0]), sourcelen, Z_DEFAULT_COMPRESSION);
+#ifdef USE_ZLIB
+        int status = compress2((Bytef *)destbuffer, &destlen, 
+                               (Bytef *)&(pos[0]), sourcelen, Z_DEFAULT_COMPRESSION);
+#else
+        int status = Z_OK+1;
+#endif
         if(status!=Z_OK)
         {
-            std::cout << "zlib Error status=" << status << "\n";
+            std::cout << "ERROR: zlib Error status=" << zlibstatus(status) << "\n";
         }
         else
         {
@@ -259,12 +291,19 @@ void paraviewXML(std::string const &filename,
                  std::vector<double> const &pos,
                  std::map<std::string, std::vector<double> *> const &scalars,
                  std::map<std::string, std::vector<double> *> const &vectors, 
-                 bool ascii, 
+                 bool binary, 
                  bool usez)
 {
     //std::cout << "system is " << (isCpuLittleEndian? "little" : "big") << " endian\n";
-    //bool ascii=false;
+    //bool binary=false;
     //bool usez=true;
+#if !defined(USE_ZLIB)
+    if(binary && usez)
+    {
+        std::cout << "INFO: zlib not present - vtk file will not be compressed!\n";
+        usez=false; 
+    }
+#endif
 
     int nbp = pos.size()/3;
     assert(pos.size()==nbp*3); // should be multiple of 3
@@ -443,3 +482,27 @@ void paraviewXML(std::string const &filename,
 
     f.close();
 }
+
+
+// interface
+
+void paraview(std::string const &filename, 
+              int step,
+              std::vector<double> const &pos,
+              std::map<std::string, std::vector<double> *> const &scalars,
+              std::map<std::string, std::vector<double> *> const &vectors, 
+              PFormat format)       
+{
+    switch(format)
+    {
+        case LEGACY_TXT:
+            paraviewLEGACY(filename, step, pos, scalars, vectors, false); break;
+        case XML_BIN:
+            paraviewXML(filename, step, pos, scalars, vectors, true, false); break;
+        case XML_BINZ:
+            paraviewXML(filename, step, pos, scalars, vectors, true, true); break;
+        case LEGACY_BIN:
+        default:
+            paraviewLEGACY(filename, step, pos, scalars, vectors, true); break;
+    }
+}      

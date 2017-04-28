@@ -1,4 +1,6 @@
-#include "sph.h"
+#include "cube.h"
+#include <iostream>
+#include <cmath> // ceil
 
 // build a cube of particles aligned with x,y,z axes.
 //  - o[3]: corner of the cube with the lowest (x,y,z) values
@@ -41,5 +43,3 @@ void meshcube(double o[3], double L[3], double s, std::vector<double> &pos)
         }
     }
 }
-
-
