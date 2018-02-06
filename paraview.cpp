@@ -185,7 +185,7 @@ size_t write_vectorXML(std::ofstream &f, std::vector<double> const &pos, bool us
             buffer[i] = (float)pos[i];
 
         size_t sourcelen = pos.size() *sizeof(float);
-        size_t destlen = size_t(sourcelen * 1.001) + 12;  // see doc
+        uLongf destlen = uLongf(sourcelen * 1.001) + 12;  // see doc
         char *destbuffer = new char[destlen];
 #ifdef USE_ZLIB
         int status = compress2((Bytef*)destbuffer, &destlen, 
@@ -241,7 +241,7 @@ size_t write_vectorXML(std::ofstream &f, std::vector<int> const &pos, bool usez)
     else
     {
         size_t sourcelen = pos.size() *sizeof(int);
-        size_t destlen = size_t(sourcelen * 1.001) + 12;  // see doc
+        uLongf destlen = size_t(sourcelen * 1.001) + 12;  // see doc
         char *destbuffer = new char[destlen];
 #ifdef USE_ZLIB
         int status = compress2((Bytef *)destbuffer, &destlen, 
