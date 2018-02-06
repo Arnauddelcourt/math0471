@@ -17,7 +17,7 @@ array = vtk.vtkDoubleArray()
 array.SetNumberOfComponents(1) # this is 3 for a vector
 array.SetNumberOfTuples(grid.GetNumberOfPoints())
 for i in range(grid.GetNumberOfPoints()):
-    array.SetValue(i, i)
+    array.SetValue(i, i/2.0)
 grid.GetPointData().AddArray(array)
 array.SetName("my_data1")
 
@@ -28,8 +28,13 @@ writer.SetInputData(grid)
 writer.SetFileName("points.vtk")
 writer.Write()
 
-# display grid... (to be finished)
+writer = vtk.vtkXMLImageDataWriter()
+writer.SetInputData(grid)
+writer.SetFileName("points.vti")
+writer.Write()
 
+# display grid... (to be finished)
+"""
 mapper = vtk.vtkDataSetMapper()
 mapper.SetInputData(grid)
 #mapper.ScalarVisibilityOff()
@@ -53,3 +58,4 @@ interactor.SetRenderWindow(window)
 ren.ResetCamera()
 window.Render()
 interactor.Start()
+"""

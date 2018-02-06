@@ -11,6 +11,7 @@
 #include <zlib.h>
 #else
 #define Z_OK 0
+#define uLongf size_t
 #endif
 
 const int __one__ = 1;
