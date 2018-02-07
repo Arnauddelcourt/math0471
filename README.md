@@ -32,7 +32,7 @@ make
 see also [CMake](https://cmake.org/)
 
 ## results
-The programs generates 20 [VTK](http://www.vtk.org/) files which can be loaded into [Paraview](http://www.paraview.org/)
+The programs generate several [VTK](http://www.vtk.org/) files which can be loaded into [Paraview](http://www.paraview.org/)
 
 ![Screenshot](screenshot.png)
 
