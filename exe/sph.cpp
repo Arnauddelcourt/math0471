@@ -1,6 +1,13 @@
-#include "sph.h"
 #include "cube.h"
-#include "paraview.h"
+#include "vtklite.h"
+
+#include <string>
+#include <vector>
+#include <iostream>
+#include <map>
+#include <cmath>
+#include <cassert>
+
 
 int main(int argc, char *argv[])
 {

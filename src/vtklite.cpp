@@ -1,5 +1,11 @@
-#include "sph.h"
-#include "paraview.h"
+#include <string>
+#include <vector>
+#include <iostream>
+#include <map>
+#include <cmath>
+#include <cassert>
+
+#include "vtklite.h"
 #include <fstream>
 #include <sstream>
 #include <iomanip>

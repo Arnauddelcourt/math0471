@@ -1,5 +1,5 @@
-#ifndef PARAVIEW_H
-#define PARAVIEW_H
+#ifndef VTKLITE_H
+#define VTKLITE_H
 
 #include <string>
 #include <vector>
@@ -29,4 +29,6 @@ void paraview2(std::string const &filename,
               std::map<std::string, std::vector<double> *> const &vectors, 
               PFormat format);
 
-#endif // PARAVIEW_H
+
+#endif // VTKLITE_H
+

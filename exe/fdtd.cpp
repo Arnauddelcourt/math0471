@@ -1,6 +1,12 @@
-#include "fdtd.h"
 #include "cube.h"
-#include "paraview.h"
+#include "vtklite.h"
+
+#include <string>
+#include <vector>
+#include <iostream>
+#include <map>
+#include <cmath>
+#include <cassert>
 
 int main(int argc, char *argv[])
 {
@@ -10,8 +16,6 @@ int main(int argc, char *argv[])
     double L[3] = { 50.0, 60.0, 80.0 };
     int np[3] = { 50, 60, 80 };
     int nstepT = 1;
-
-    //meshcube(o, L, s, pos);
 
     // creation of dummy fields
 
