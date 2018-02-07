@@ -18,6 +18,15 @@ void paraview(std::string const &filename,
               std::vector<double> const &pos,
               std::map<std::string, std::vector<double> *> const &scalars,
               std::map<std::string, std::vector<double> *> const &vectors,
-              PFormat format);       
+              PFormat format); 
+
+void paraview2(std::string const &filename, 
+              int step,
+              double o[3],
+              double dx[3],
+              int np[3],
+              std::map<std::string, std::vector<double> *> const &scalars,
+              std::map<std::string, std::vector<double> *> const &vectors, 
+              PFormat format);
 
 #endif // PARAVIEW_H

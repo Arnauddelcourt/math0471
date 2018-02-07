@@ -9,7 +9,7 @@ import vtk
 dx = 0.2
 grid = vtk.vtkStructuredPoints()
 #grid = vtk.vtkImageData()
-grid.SetOrigin(0, 0, 0) # default values
+grid.SetOrigin(0.1, 0.1, 0.1) # default values
 grid.SetSpacing(dx, dx, dx)
 grid.SetDimensions(5, 8, 10) # number of points in each direction
 

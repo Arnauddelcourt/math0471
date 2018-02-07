@@ -507,3 +507,221 @@ void paraview(std::string const &filename,
             paraviewLEGACY(filename, step, pos, scalars, vectors, true); break;
     }
 }      
+
+// --------------------------------------------------------------------------------------------
+
+
+// export results to paraview (VTK polydata - legacy file fomat)
+//   filename: file name without vtk extension
+//   pos:     positions (vector of size 3*number of particles)
+//   step:    time step number
+//   scalars: scalar fields defined on particles (map linking [field name] <=> [vector of results v1, v2, v3, v4, ...]
+//   vectors: vector fields defined on particles (map linking [field name] <=> [vector of results v1x, v1y, v1z, v2x, v2y, ...]
+//   binary:   'true' for binary format, 'false' for ASCII
+
+void paraview2LEGACY(std::string const &filename, 
+              int step,
+              double o[3],
+              double dx[3],
+              int np[3],
+              std::map<std::string, std::vector<double> *> const &scalars,
+              std::map<std::string, std::vector<double> *> const &vectors, 
+              bool binary)
+{   
+    // build file name + stepno + vtk extension
+    std::stringstream s; s << filename << std::setw(8) << std::setfill('0') << step << ".vtk";
+
+    // open file
+    std::cout << "writing results to " << s.str() << '\n';
+    std::ofstream f(s.str().c_str(), std::ios::binary | std::ios::out);
+    f << std::scientific;
+    // header
+    f << "# vtk DataFile Version 3.0\n";
+    f << "file written by sph.exe\n";
+    f << (binary ? "BINARY\n" : "ASCII\n");
+    f << "DATASET STRUCTURED_POINTS\n";
+
+    // dataset = STRUCTURED_POINTS
+    f << "DIMENSIONS " << np[0] << ' ' << np[1] << ' ' << np[2] << '\n';
+    f << "SPACING " << dx[0] << ' ' << dx[1] << ' ' << dx[2] << '\n';
+    f << "ORIGIN " << o[0] << ' ' << o[1] << ' ' << o[2] << '\n';
+
+    // fields - POINT_DATA
+    int nbp = np[0]*np[1]*np[2];
+    f << "POINT_DATA " << nbp << '\n';
+    f << "FIELD FieldData " << scalars.size()+vectors.size() << '\n';
+
+    // scalar fields
+    std::map<std::string, std::vector<double> *>::const_iterator it=scalars.begin();
+    for(; it!=scalars.end(); ++it)
+    {
+        assert(it->second->size()==nbp);
+        f << it->first << " 1 " << nbp << " float\n";
+        write_vectorLEGACY(f, *it->second, nbp, 1, binary);
+    }
+
+    // vector fields
+    it = vectors.begin();
+    for(; it!=vectors.end(); ++it)
+    {
+        assert(it->second->size()==3*nbp);
+        f << it->first << " 3 " << nbp << " float\n";
+        write_vectorLEGACY(f, *it->second, nbp, 3, binary);
+    }
+
+    // fields - CELL_DATA
+    // [TODO]
+
+    f.close();
+}
+
+
+// export results to paraview (VTK polydata - XML fomat)
+//   filename: file name without vtk extension
+//   pos:     positions (vector of size 3*number of particles)
+//   step:    time step number
+//   scalars: scalar fields defined on particles (map linking [field name] <=> [vector of results v1, v2, v3, v4, ...]
+//   vectors: vector fields defined on particles (map linking [field name] <=> [vector of results v1x, v1y, v1z, v2x, v2y, ...]
+
+// see http://www.vtk.org/Wiki/VTK_XML_Formats
+
+void paraview2XML(std::string const &filename, 
+                 int step,
+                 double o[3],
+                 double dx[3],
+                 int np[3],
+                 std::map<std::string, std::vector<double> *> const &scalars,
+                 std::map<std::string, std::vector<double> *> const &vectors, 
+                 bool binary, 
+                 bool usez)
+{
+#if !defined(USE_ZLIB)
+    if(binary && usez)
+    {
+        std::cout << "INFO: zlib not present - vtk file will not be compressed!\n";
+        usez=false; 
+    }
+#endif
+
+    int nbp = np[0]*np[1]*np[2];
+    
+    // build file name + stepno + vtk extension
+    std::stringstream s; s << filename << std::setw(8) << std::setfill('0') << step << ".vti";
+    std::stringstream s2; s2 << filename << std::setw(8) << std::setfill('0') << step << ".vti.tmp";
+
+    // open file
+    std::cout << "writing results to " << s.str() << '\n';
+    std::ofstream f(s.str().c_str(), std::ios::binary | std::ios::out);
+    std::ofstream f2(s2.str().c_str(), std::ios::binary | std::ios::out); // temp binary file
+    f << std::scientific;
+
+    size_t offset = 0;
+    // header
+    f << "<?xml version=\"1.0\"?>\n";
+
+    f << "<VTKFile type=\"ImageData\" version=\"0.1\" byte_order=\"";
+    f << ( isCpuLittleEndian? "LittleEndian" : "BigEndian") << "\" ";
+    f << "header_type=\"UInt32\" "; // UInt64 should be better
+    if(usez)
+        f << "compressor=\"vtkZLibDataCompressor\" ";
+    f << ">\n";
+
+
+    double L[3];
+    for(int i=0; i<3; ++i)
+        L[i] = (np[i]+1)*dx[i];
+
+    f << "  <ImageData ";
+    f << "WholeExtent=\""
+      << 0 << ' ' << np[0]-1 << ' '
+      << 0 << ' ' << np[1]-1 << ' '
+      << 0 << ' ' << np[2]-1 << "\" ";
+    f << "Origin=\"" << o[0] << ' ' << o[1] << ' ' << o[2] << "\" ";
+    f << "Spacing=\"" << dx[0] << ' ' << dx[1] << ' ' << dx[2] << "\">\n";
+
+    f << "    <Piece ";
+    f << "Extent=\"" 
+      << 0 << ' ' << np[0]-1 << ' '
+      << 0 << ' ' << np[1]-1 << ' '
+      << 0 << ' ' << np[2]-1 << "\">\n";
+
+    // ------------------------------------------------------------------------------------
+    f << "      <PointData>\n";
+    // scalar fields
+    std::map<std::string, std::vector<double> *>::const_iterator it=scalars.begin();
+    for(; it!=scalars.end(); ++it)
+    {
+        assert(it->second->size()==nbp);
+        f << "        <DataArray type=\"Float32\" ";
+        f << " Name=\"" << it->first << "\" ";
+        f << " format=\"appended\" ";
+        f << " RangeMin=\"0\" ";
+        f << " RangeMax=\"1\" ";
+        f << " offset=\"" << offset << "\" />\n";
+        offset += write_vectorXML(f2, *it->second, usez);
+    }
+    // vector fields
+    it = vectors.begin();
+    for(; it!=vectors.end(); ++it)
+    {
+        assert(it->second->size()==3*nbp);
+        f << "        <DataArray type=\"Float32\" ";
+        f << " Name=\"" << it->first << "\" ";
+        f << " NumberOfComponents=\"3\" ";
+        f << " format=\"appended\" ";
+        f << " RangeMin=\"0\" ";
+        f << " RangeMax=\"1\" ";
+        f << " offset=\"" << offset << "\" />\n";
+        offset += write_vectorXML(f2, *it->second, usez);
+    }
+    f << "      </PointData>\n";
+
+    // ------------------------------------------------------------------------------------
+    f << "      <CellData>\n";
+    f << "      </CellData>\n";
+
+    f2.close();
+
+    // ------------------------------------------------------------------------------------
+    f << "    </Piece>\n";
+    f << "  </ImageData>\n";
+    // ------------------------------------------------------------------------------------
+    f << "  <AppendedData encoding=\"raw\">\n";
+    f << "    _";
+
+    // copy temp binary file
+    std::ifstream f3(s2.str().c_str(), std::ios::binary | std::ios::in);
+    f << f3.rdbuf();
+    f3.close();
+    // remove temp file
+    std::remove(s2.str().c_str());
+
+    f << "  </AppendedData>\n";
+    f << "</VTKFile>\n";
+
+    f.close();
+}
+
+void paraview2(std::string const &filename, 
+              int step,
+              double o[3],
+              double dx[3],
+              int np[3],
+              std::map<std::string, std::vector<double> *> const &scalars,
+              std::map<std::string, std::vector<double> *> const &vectors, 
+              PFormat format)
+{
+    switch(format)
+    {
+        case LEGACY_TXT:
+            paraview2LEGACY(filename, step, o, dx, np, scalars, vectors, false); break;
+        case XML_BIN:
+            paraview2XML(filename, step, o, dx, np, scalars, vectors, true, false); break;
+        case XML_BINZ:
+            paraview2XML(filename, step, o, dx, np, scalars, vectors, true, true); break;
+        case LEGACY_BIN:
+        default:
+            paraview2LEGACY(filename, step, o, dx, np, scalars, vectors, true); break;
+    }
+}
+
