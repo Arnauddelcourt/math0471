@@ -1,22 +1,38 @@
-# sph
-Dummy SPH program 
-  * creates a particle set (cube)
-  * simulates a time-integration loop:
-     * generates some scalar/vector results for each particle
-     * saves them to disk in paraview format
-     
+# VTK lite
+
+This small library can be used to export VTK files without linking to the huge VTK libraries.
+
+For now, the following datasets are implemented:
+  * set of points with scalar and vector data (exported as a Polydata) - useful for SPH simulations.
+  * structured grid aligned with X, Y, Z with constant spacing dx, dy, dz (exported as ImageData) - useful for FDTD simulations.
+
+The following [output formats](https://www.vtk.org/wp-content/uploads/2015/04/file-formats.pdf) are supported:
+  * Legacy VTK, ASCII  (huge file - `.vtk` extension)
+  * Legacy VTK, Binary (small file - `.vtk` extension)
+  * XML VTK, Binary (similar size to "Legacy VTK, Binary" - `.vtp`/`.vti` extension)
+  * XML VTK, Compressed Binary (smallest size - `.vtp`/`.vti` extension - requires [zlib](https://www.zlib.net/))
+
+The `src` folder contains the library.
+
+The `exe` folder contains 2 dummy solvers (sph/fdtd) which
+  * create a mesh
+  * simulate a time-integration loop:
+     * generate some scalar/vector results for each point
+     * save them to disk in the 4 available VTK formats
+
 ## build and run
 ```bash
 mkdir build
 cd build
 cmake ..
 make
-./sph
+./exe/sph
+./exe/fdtd
 ```
 see also [CMake](https://cmake.org/)
 
 ## results
-The program generates 20 [VTK](http://www.vtk.org/) files which can be loaded into [Paraview](http://www.paraview.org/)
+The programs generates 20 [VTK](http://www.vtk.org/) files which can be loaded into [Paraview](http://www.paraview.org/)
 
 ![Screenshot](screenshot.png)
 
