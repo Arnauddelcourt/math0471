@@ -630,7 +630,10 @@ void export_spoints_XML(std::string const &filename,
                         std::map<std::string, std::vector<double> *> const &scalars,
                         std::map<std::string, std::vector<double> *> const &vectors,
                         bool binary,
-                        bool usez)
+                        bool usez,
+                        int myid,
+                        int *myn1,
+                        int *myn2)
 {
 #if !defined(USE_ZLIB)
     if (binary && usez)
@@ -642,11 +645,17 @@ void export_spoints_XML(std::string const &filename,
 
     int nbp = np[0] * np[1] * np[2];
 
-    // build file name + stepno + vtk extension
+    // build file name (+rankno) + stepno + vtk extension
     std::stringstream s;
-    s << filename << std::setw(8) << std::setfill('0') << step << ".vti";
+    s << filename;
+    if (myid >= 0)
+        s << '_' << myid;
+    s << '_' << std::setw(8) << std::setfill('0') << step << ".vti";
     std::stringstream s2;
-    s2 << filename << std::setw(8) << std::setfill('0') << step << ".vti.tmp";
+    s2 << filename;
+    if (myid >= 0)
+        s2 << '_' << myid;
+    s2 << '_' << std::setw(8) << std::setfill('0') << step << ".vti.tmp";
 
     // open file
     std::cout << "writing results to " << s.str() << '\n';
@@ -678,10 +687,16 @@ void export_spoints_XML(std::string const &filename,
     f << "Spacing=\"" << dx[0] << ' ' << dx[1] << ' ' << dx[2] << "\">\n";
 
     f << "    <Piece ";
-    f << "Extent=\""
-      << 0 << ' ' << np[0] - 1 << ' '
-      << 0 << ' ' << np[1] - 1 << ' '
-      << 0 << ' ' << np[2] - 1 << "\">\n";
+    if (myid >= 0)
+        f << "Extent=\""
+          << myn1[0] << ' ' << myn2[0] << ' '
+          << myn1[1] << ' ' << myn2[1] << ' '
+          << myn1[2] << ' ' << myn2[2] << "\">\n";
+    else
+        f << "Extent=\""
+          << 0 << ' ' << np[0] - 1 << ' '
+          << 0 << ' ' << np[1] - 1 << ' '
+          << 0 << ' ' << np[2] - 1 << "\">\n";
 
     // ------------------------------------------------------------------------------------
     f << "      <PointData>\n";
@@ -689,7 +704,7 @@ void export_spoints_XML(std::string const &filename,
     std::map<std::string, std::vector<double> *>::const_iterator it = scalars.begin();
     for (; it != scalars.end(); ++it)
     {
-        assert(it->second->size() == nbp);
+        //assert(it->second->size() == nbp);
         f << "        <DataArray type=\"Float32\" ";
         f << " Name=\"" << it->first << "\" ";
         f << " format=\"appended\" ";
@@ -702,7 +717,7 @@ void export_spoints_XML(std::string const &filename,
     it = vectors.begin();
     for (; it != vectors.end(); ++it)
     {
-        assert(it->second->size() == 3 * nbp);
+        //assert(it->second->size() == 3 * nbp);
         f << "        <DataArray type=\"Float32\" ";
         f << " Name=\"" << it->first << "\" ";
         f << " NumberOfComponents=\"3\" ";
@@ -740,6 +755,109 @@ void export_spoints_XML(std::string const &filename,
     f.close();
 }
 
+
+void export_spoints_XMLP(std::string const &filename,
+                        int step,
+                        double o[3],
+                        double dx[3],
+                        int np[3],
+                        std::map<std::string, std::vector<double> *> const &scalars,
+                        std::map<std::string, std::vector<double> *> const &vectors,
+                        bool binary,
+                        bool usez,
+                        std::vector< std::vector<int> > const &extents
+                        )
+{
+#if !defined(USE_ZLIB)
+    if (binary && usez)
+    {
+        std::cout << "INFO: zlib not present - vtk file will not be compressed!\n";
+        usez = false;
+    }
+#endif
+
+    // build file name (+rankno) + stepno + vtk extension
+    std::stringstream s;
+    s << filename;
+    s << '_' << std::setw(8) << std::setfill('0') << step << ".pvti";
+
+    // open file
+    std::cout << "writing results to " << s.str() << '\n';
+    std::ofstream f(s.str().c_str(), std::ios::binary | std::ios::out);
+    f << std::scientific;
+
+    // header
+    f << "<?xml version=\"1.0\"?>\n";
+
+    f << "<VTKFile type=\"PImageData\" version=\"0.1\" byte_order=\"";
+    f << (isCpuLittleEndian ? "LittleEndian" : "BigEndian") << "\" ";
+    f << "header_type=\"UInt32\" "; // UInt64 should be better
+    if (usez)
+        f << "compressor=\"vtkZLibDataCompressor\" ";
+    f << ">\n";
+
+    double L[3];
+    for (int i = 0; i < 3; ++i)
+        L[i] = (np[i] + 1) * dx[i];
+
+    f << "  <PImageData ";
+    f << "WholeExtent=\""
+      << 0 << ' ' << np[0] - 1 << ' '
+      << 0 << ' ' << np[1] - 1 << ' '
+      << 0 << ' ' << np[2] - 1 << "\" ";
+    f << "GhostLevel=\"0\" ";
+    f << "Origin=\"" << o[0] << ' ' << o[1] << ' ' << o[2] << "\" ";
+    f << "Spacing=\"" << dx[0] << ' ' << dx[1] << ' ' << dx[2] << "\">\n";
+
+    // ------------------------------------------------------------------------------------
+    f << "      <PPointData>\n";
+    // scalar fields
+    std::map<std::string, std::vector<double> *>::const_iterator it = scalars.begin();
+    for (; it != scalars.end(); ++it)
+    {
+        f << "        <PDataArray type=\"Float32\" ";
+        f << " Name=\"" << it->first << "\" />\n";
+    }
+    // vector fields
+    it = vectors.begin();
+    for (; it != vectors.end(); ++it)
+    {
+        f << "        <PDataArray type=\"Float32\" ";
+        f << " Name=\"" << it->first << "\" ";
+        f << " NumberOfComponents=\"3\" />\n";
+    }
+    f << "      </PPointData>\n";
+
+    // ------------------------------------------------------------------------------------
+    f << "      <PCellData>\n";
+    f << "      </PCellData>\n";
+
+
+   // ------------------------------------------------------------------------------------
+
+    for (int i=0; i<extents.size(); ++i)
+    {
+        f << "    <Piece ";
+        f << " Extent=\"";
+        f << extents[i][0] << ' ' << extents[i][1]-1 << ' ';
+        f << extents[i][2] << ' ' << extents[i][3]-1 << ' ';
+        f << extents[i][4] << ' ' << extents[i][5]-1 << "\" ";
+
+        f << "Source=\"";
+        std::stringstream s;
+        s << filename;
+        s << '_' << i;
+        s << '_' << std::setw(8) << std::setfill('0') << step << ".vti";
+        f << s.str() << "\" />\n";
+    }
+    // ------------------------------------------------------------------------------------
+    f << "  </PImageData>\n";
+
+    f << "</VTKFile>\n";
+
+    f.close();
+}
+
 void export_spoints(std::string const &filename,
                     int step,
                     double o[3],
@@ -747,7 +865,10 @@ void export_spoints(std::string const &filename,
                     int np[3],
                     std::map<std::string, std::vector<double> *> const &scalars,
                     std::map<std::string, std::vector<double> *> const &vectors,
-                    PFormat format)
+                    PFormat format,
+                    int myid,
+                    int *myn1,
+                    int *myn2)
 {
     switch (format)
     {
@@ -755,10 +876,10 @@ void export_spoints(std::string const &filename,
         export_spoints_LEGACY(filename, step, o, dx, np, scalars, vectors, false);
         break;
     case XML_BIN:
-        export_spoints_XML(filename, step, o, dx, np, scalars, vectors, true, false);
+        export_spoints_XML(filename, step, o, dx, np, scalars, vectors, true, false, myid, myn1, myn2);
         break;
     case XML_BINZ:
-        export_spoints_XML(filename, step, o, dx, np, scalars, vectors, true, true);
+        export_spoints_XML(filename, step, o, dx, np, scalars, vectors, true, true, myid, myn1, myn2);
         break;
     case LEGACY_BIN:
     default:

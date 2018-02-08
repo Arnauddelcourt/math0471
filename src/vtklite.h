@@ -27,6 +27,21 @@ void export_spoints(std::string const &filename,
                     int np[3],
                     std::map<std::string, std::vector<double> *> const &scalars,
                     std::map<std::string, std::vector<double> *> const &vectors,
-                    PFormat format);
+                    PFormat format,
+                    int myid = -1,
+                    int *myn1 = NULL,
+                    int *myn2 = NULL);
+
+void export_spoints_XMLP(std::string const &filename,
+                        int step,
+                        double o[3],
+                        double dx[3],
+                        int np[3],
+                        std::map<std::string, std::vector<double> *> const &scalars,
+                        std::map<std::string, std::vector<double> *> const &vectors,
+                        bool binary,
+                        bool usez,
+                        std::vector< std::vector<int> > const &extents
+                        );
 
 #endif // VTKLITE_H
