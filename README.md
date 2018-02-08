@@ -9,8 +9,8 @@ For now, the following datasets are implemented:
 The following [output formats](https://www.vtk.org/wp-content/uploads/2015/04/file-formats.pdf) are supported:
   * Legacy VTK, ASCII  (huge file - `.vtk` extension)
   * Legacy VTK, Binary (small file - `.vtk` extension)
-  * XML VTK, Binary (similar size to "Legacy VTK, Binary" - `.vtp`/`.vti` extension)
-  * XML VTK, Compressed Binary (smallest size - `.vtp`/`.vti` extension - requires [zlib](https://www.zlib.net/))
+  * XML VTK, Appended-Raw Binary (similar size to "Legacy VTK, Binary" - `.vtp`/`.vti` extension)
+  * XML VTK, Compressed Appended-Raw Binary (smallest size - `.vtp`/`.vti` extension - requires [zlib](https://www.zlib.net/))
 
 The `src` folder contains the library.
 

@@ -55,10 +55,10 @@ int main(int argc, char *argv[])
         }
 
         // save results to disk
-        export_polydata("results_txt", nstep, pos, scalars, vectors, LEGACY_TXT);
-        export_polydata("results_bin", nstep, pos, scalars, vectors, LEGACY_BIN);
-        export_polydata("results_bin", nstep, pos, scalars, vectors, XML_BIN);
-        export_polydata("results_binz", nstep, pos, scalars, vectors, XML_BINZ);
+        export_polydata("sph_legacy_ascii", nstep, pos, scalars, vectors, LEGACY_TXT);
+        export_polydata("sph_legacy_bin", nstep, pos, scalars, vectors, LEGACY_BIN);
+        export_polydata("sph_xml_apprawbin", nstep, pos, scalars, vectors, XML_BIN);
+        export_polydata("sph_xml_apprawbinz", nstep, pos, scalars, vectors, XML_BINZ);
     }
 
     return 0;

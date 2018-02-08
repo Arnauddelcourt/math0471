@@ -1,4 +1,3 @@
-#include "cube.h"
 #include "vtklite.h"
 
 #include <string>
@@ -62,10 +61,10 @@ int main(int argc, char *argv[])
         }
 
         // save results to disk
-        export_spoints("results_txt", nstep, o, dx, np, scalars, vectors, LEGACY_TXT);
-        export_spoints("results_bin", nstep, o, dx, np, scalars, vectors, LEGACY_BIN);
-        export_spoints("results_bin", nstep, o, dx, np, scalars, vectors, XML_BIN);
-        export_spoints("results_binz", nstep, o, dx, np, scalars, vectors, XML_BINZ);
+        export_spoints("fdtd_legacy_ascii", nstep, o, dx, np, scalars, vectors, LEGACY_TXT);
+        export_spoints("fdtd_legacy_bin", nstep, o, dx, np, scalars, vectors, LEGACY_BIN);
+        export_spoints("fdtd_xml_apprawbin", nstep, o, dx, np, scalars, vectors, XML_BIN);
+        export_spoints("fdtd_xml_apprawbinz", nstep, o, dx, np, scalars, vectors, XML_BINZ);
     }
 
     return 0;
