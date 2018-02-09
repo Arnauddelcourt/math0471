@@ -22,20 +22,32 @@ void splitgrid(int np[3], int numprocs, int myid, int myn1[3], int myn2[3])
     // build the point idx separating each subdomain
     std::vector<int> nps(numprocs + 1);
     nps[0] = 0;
-    for (int i = 0; i < numprocs; ++i)
+    for (int i = 0; i < numprocs+1; ++i)
     {
         nps[i + 1] = nps[i] + nfloor;
         if (i < rem)
             nps[i + 1]++;
     }
-
+    /*
+    if(myid==0) // DEBUG
+    {
+        std::cout << "nps=";
+        for (int i = 0; i < numprocs+1; ++i)
+            std::cout << nps[i] << " ";
+        std::cout << "\n";
+    }
+    */
     for (int i = 0; i < 3; ++i)
     {
         myn1[i] = 0;
-        myn2[i] = np[i];
+        myn2[i] = np[i]-1;
     }
     myn1[sdir] = nps[myid];
-    myn2[sdir] = nps[myid + 1];
+    myn2[sdir] = nps[myid + 1]-1; 
+
+    // add extra layers from direct neighborhood
+    if(myid!=0)
+        myn1[sdir]-=1;
 }
 
 int main(int argc, char *argv[])
@@ -43,8 +55,8 @@ int main(int argc, char *argv[])
     // Global grid parameters
     double o[3] = {10.0, 10.0, 10.0};
     double L[3] = {50.0, 60.0, 80.0};
-    int np[3] = {51, 61, 81};
-    int nstepT = 1;
+    int np[3] = {51, 61, 81}; // nb of points in each direction - idx starting from 0 to np[i]-1
+    int nstepT = 20;
 
     // compute spacing
     double dx[3];
@@ -66,12 +78,13 @@ int main(int argc, char *argv[])
     std::cout << myid << ": [" 
     << myn1[0] << '-' << myn2[0] << ", " 
     << myn1[1] << '-' << myn2[1] << ", " 
-    << myn1[2] << '-' << myn2[2] 
-    << "]\n";
+    << myn1[2] << '-' << myn2[2] << "]";
+    
     int mynp[3];
     for (int i = 0; i < 3; ++i)
-        mynp[i] = myn2[i] - myn1[i];
+        mynp[i] = myn2[i] - myn1[i] +1;
 
+    std::cout << " = [" << mynp[0] << ", " << mynp[1] << ", " << mynp[2] << "]\n"; 
     // build extents vectors
     std::vector<std::vector<int> > extents(numprocs);
     if (myid == 0)

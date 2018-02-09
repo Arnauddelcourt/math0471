@@ -839,9 +839,9 @@ void export_spoints_XMLP(std::string const &filename,
     {
         f << "    <Piece ";
         f << " Extent=\"";
-        f << extents[i][0] << ' ' << extents[i][1]-1 << ' ';
-        f << extents[i][2] << ' ' << extents[i][3]-1 << ' ';
-        f << extents[i][4] << ' ' << extents[i][5]-1 << "\" ";
+        f << extents[i][0] << ' ' << extents[i][1] << ' ';
+        f << extents[i][2] << ' ' << extents[i][3] << ' ';
+        f << extents[i][4] << ' ' << extents[i][5] << "\" ";
 
         f << "Source=\"";
         std::stringstream s;
