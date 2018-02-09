@@ -649,12 +649,12 @@ void export_spoints_XML(std::string const &filename,
     std::stringstream s;
     s << filename;
     if (myid >= 0)
-        s << '_' << myid;
+        s << "_r" << myid;
     s << '_' << std::setw(8) << std::setfill('0') << step << ".vti";
     std::stringstream s2;
     s2 << filename;
     if (myid >= 0)
-        s2 << '_' << myid;
+        s2 << "r_" << myid;
     s2 << '_' << std::setw(8) << std::setfill('0') << step << ".vti.tmp";
 
     // open file
@@ -846,7 +846,7 @@ void export_spoints_XMLP(std::string const &filename,
         f << "Source=\"";
         std::stringstream s;
         s << filename;
-        s << '_' << i;
+        s << "_r" << i;
         s << '_' << std::setw(8) << std::setfill('0') << step << ".vti";
         f << s.str() << "\" />\n";
     }

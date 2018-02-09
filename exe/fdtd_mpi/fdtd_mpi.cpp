@@ -1,3 +1,8 @@
+// example of hybrid MPI/OpenMP program
+//     run with 2 processes and 6 threads per process (ubuntu)
+//         export OMP_NUM_THREADS=6
+//         mpirun -np 2 -cpus-per-rank 6 --bind-to core:overload-allowed  exe/fdtd_mpi/fdtd_mpi
+
 #include "vtklite.h"
 
 #include <string>
@@ -8,6 +13,8 @@
 #include <cassert>
 
 #include <mpi.h>
+#include <omp.h>
+#include <stdlib.h>
 
 void splitgrid(int np[3], int numprocs, int myid, int myn1[3], int myn2[3])
 {
@@ -52,11 +59,12 @@ void splitgrid(int np[3], int numprocs, int myid, int myn1[3], int myn2[3])
 
 int main(int argc, char *argv[])
 {
+
     // Global grid parameters
     double o[3] = {10.0, 10.0, 10.0};
     double L[3] = {50.0, 60.0, 80.0};
     int np[3] = {51, 61, 81}; // nb of points in each direction - idx starting from 0 to np[i]-1
-    int nstepT = 20;
+    int nstepT = 10;
 
     // compute spacing
     double dx[3];
@@ -69,9 +77,15 @@ int main(int argc, char *argv[])
     MPI_Comm_size(MPI_COMM_WORLD, &numprocs);
     int myid;
     MPI_Comm_rank(MPI_COMM_WORLD, &myid);
-    if (myid == 0)
-        std::cout << myid << ": we have " << numprocs << " processes\n";
 
+    // display some OpenMP/MPI info
+    if (myid == 0)
+    {
+        std::cout << myid << ": we have " << numprocs << " processes\n";
+        int nthreads = omp_get_max_threads();
+        std::cout << myid << ": we have " << nthreads << " threads\n";
+        std::cout << "OMP_NUM_THREADS=" << getenv("OMP_NUM_THREADS") << '\n';
+    }
     // get my grid indices
     int myn1[3], myn2[3];
     splitgrid(np, numprocs, myid, myn1, myn2);
@@ -124,9 +138,12 @@ int main(int argc, char *argv[])
     {
         double time = double(nstep) / nstepT;
 
-        int idx = 0;
+        //int idx = 0;
+        #pragma omp parallel for
         for (int k = 0; k < mynp[2]; ++k)
         {
+
+            //std::cout << "k=" << k << '\n';
             double z = (myn1[2] + k) * dx[2] + o[2];
             for (int j = 0; j < mynp[1]; ++j)
             {
@@ -135,27 +152,30 @@ int main(int argc, char *argv[])
                 {
                     double x = (myn1[0] + i) * dx[0] + o[0];
 
+                    int idx = k*(mynp[1]*mynp[0])+(j*mynp[0])+i;
+                    //idx++;
+
                     Ez[idx] = x;
                     Hy[idx] = y;
                     poynting[idx * 3 + 0] = sin(2 * M_PI * (((x - (o[0] + L[0] / 2.)) / L[0]) + time));
                     poynting[idx * 3 + 1] = cos(2 * M_PI * (((y - (o[1] + L[1] / 2.)) / L[1]) + time));
                     poynting[idx * 3 + 2] = sin(2 * M_PI * (((z - (o[2] + L[2] / 2.)) / L[2]) + time));
-                    idx++;
+                    
                 }
             }
         }
 
+        
         // save results to disk
-        //export_spoints("fdtd_legacy_ascii", nstep, o, dx, np, scalars, vectors, LEGACY_TXT, myid, myn1, myn2);
-        //export_spoints("fdtd_legacy_bin", nstep, o, dx, np, scalars, vectors, LEGACY_BIN, myid, myn1, myn2);
-        export_spoints("fdtd_xml_apprawbin", nstep, o, dx, np, scalars, vectors, XML_BIN, myid, myn1, myn2);
-        export_spoints("fdtd_xml_apprawbinz", nstep, o, dx, np, scalars, vectors, XML_BINZ, myid, myn1, myn2);
+        export_spoints("fdtd", nstep, o, dx, np, scalars, vectors, XML_BIN, myid, myn1, myn2);
+        export_spoints("fdtdz", nstep, o, dx, np, scalars, vectors, XML_BINZ, myid, myn1, myn2);
 
-        if (myid == 0)
+        if (myid == 0) // save main pvti file by rank0
         {
-            export_spoints_XMLP("fdtd_xml_apprawbin", nstep, o, dx, np, scalars, vectors, true, false, extents);
-            export_spoints_XMLP("fdtd_xml_apprawbinz", nstep, o, dx, np, scalars, vectors, true, true, extents);
+            export_spoints_XMLP("fdtd", nstep, o, dx, np, scalars, vectors, true, false, extents);
+            export_spoints_XMLP("fdtdz", nstep, o, dx, np, scalars, vectors, true, true, extents);
         }
+        
     }
 
     MPI_Finalize();
