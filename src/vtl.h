@@ -5,6 +5,22 @@
 #include <vector>
 #include <map>
 
+#if defined(WIN32)
+#ifdef vtl_EXPORTS
+#define VTL_API __declspec(dllexport)
+#else
+#define VTL_API __declspec(dllimport)
+#endif
+#else
+#define VTL_API
+#endif
+
+namespace vtl 
+{
+    class SPoints;
+    class UPoints;
+}
+
 enum PFormat
 {
     LEGACY_TXT = 0,

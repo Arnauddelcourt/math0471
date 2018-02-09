@@ -5,7 +5,7 @@
 #include <cmath>
 #include <cassert>
 
-#include "vtklite.h"
+#include "vtl.h"
 #include <fstream>
 #include <sstream>
 #include <iomanip>
