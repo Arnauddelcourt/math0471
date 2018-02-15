@@ -5,6 +5,13 @@ IF(NOT CMAKE_BUILD_TYPE)
     SET( CMAKE_BUILD_TYPE "Release" CACHE STRING "" FORCE)
 ENDIF(NOT CMAKE_BUILD_TYPE)
 
+include(CheckCXXCompilerFlag)
+check_cxx_compiler_flag("-std=c++11" STD11CHECK)
+IF(STD11CHECK)
+    ADD_DEFINITIONS(-std=c++11 )
+ENDIF()
+
+
 ADD_SUBDIRECTORY( src )
 ADD_SUBDIRECTORY( exe/sph )
 ADD_SUBDIRECTORY( exe/fdtd )

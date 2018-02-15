@@ -1,9 +1,6 @@
 #ifndef VTKLITE_H
 #define VTKLITE_H
 
-#include <string>
-#include <vector>
-#include <map>
 
 #if defined(WIN32)
 #ifdef vtl_EXPORTS
@@ -15,6 +12,11 @@
 #define VTL_API
 #endif
 
+
+#include <string>
+#include <vector>
+#include <map>
+#include "vtlSPoints.h"
 namespace vtl 
 {
     class SPoints;
@@ -50,14 +52,19 @@ void export_spoints(std::string const &filename,
 
 void export_spoints_XMLP(std::string const &filename,
                         int step,
-                        double o[3],
-                        double dx[3],
-                        int np[3],
-                        std::map<std::string, std::vector<double> *> const &scalars,
-                        std::map<std::string, std::vector<double> *> const &vectors,
+                        vtl::SPoints const &grid, 
+                        vtl::SPoints const &mygrid, 
+                        std::vector<vtl::SPoints> const &sgrids,
                         bool binary,
-                        bool usez,
-                        std::vector< std::vector<int> > const &extents
+                        bool usez
                         );
+// -- "more-OO" interface
+
+void export_spoints2(std::string const &filename,
+                    int step, 
+                    vtl::SPoints const &grid, 
+                    vtl::SPoints const &mygrid,
+                    PFormat format);
+
 
 #endif // VTKLITE_H

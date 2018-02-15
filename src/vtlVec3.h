@@ -64,6 +64,10 @@ class Vec3
     {
         return Vec3<T>(v[0] * d, v[1] * d, v[2] * d);
     }
+    Vec3<T> operator*(Vec3<T> const &d) const
+    {
+        return Vec3<T>(v[0] * d[0], v[1] * d[1], v[2] * d[2]);
+    }
     friend Vec3<T> operator*(T const &d, const Vec3<T> &v)
     {
         return v * d;
@@ -77,6 +81,14 @@ class Vec3
     {
         return Vec3<U>(v[0], v[1], v[2]);
     }
+    T &operator[](int i)
+    {   
+        return v[i];
+    }
+    T operator[](int i) const
+    {   
+        return v[i];
+    }     
 };
 
 typedef Vec3<double> Vec3d;
