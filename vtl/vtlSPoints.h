@@ -20,15 +20,12 @@ class VTL_API SPoints
   public:
     int id;     ///< rank of the grid
     Vec3d o;    ///< origin
-    //Vec3d L;    ///< length of the domain along x,y,z
     Vec3i np1;  ///< starting indices
     Vec3i np2;  ///< ending indices
-    //Vec3i np;   ///< nb of points along each direction
     Vec3d dx;   ///< spacing
-
+    
     std::map<std::string, std::vector<double> *> scalars;
     std::map<std::string, std::vector<double> *> vectors;
-
 
     SPoints();
 	SPoints split(int numprocs, int myid);

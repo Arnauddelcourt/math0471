@@ -1,7 +1,6 @@
 #ifndef VTL_H
 #define VTL_H
 
-
 #if defined(WIN32)
 #ifdef vtl_EXPORTS
 #define VTL_API __declspec(dllexport)
@@ -17,7 +16,7 @@
 #define _CRT_SECURE_NO_WARNINGS 1
 #endif
 #pragma warning(disable : 4251) // DLL/templates non exportes
-#endif //_MSC_VER
+#endif                          //_MSC_VER
 
 #include <string>
 #include <vector>
@@ -27,11 +26,9 @@
 
 #include "vtlSPoints.h"
 
-namespace vtl 
+namespace vtl
 {
-    class SPoints;
-    //class UPoints;
-}
+class SPoints;
 
 enum PFormat
 {
@@ -41,40 +38,44 @@ enum PFormat
     XML_BINZ = 3
 };
 
-VTL_API void export_polydata(std::string const &filename,
-                     int step,
-                     std::vector<double> const &pos,
-                     std::map<std::string, std::vector<double> *> const &scalars,
-                     std::map<std::string, std::vector<double> *> const &vectors,
-                     PFormat format);
+enum Zip
+{
+    UNZIPPED = 0,
+    ZIPPED = 1
+};
 
-VTL_API void export_spoints(std::string const &filename,
-                    int step,
-                    double o[3],
-                    double dx[3],
-                    int np[3],
-                    std::map<std::string, std::vector<double> *> const &scalars,
-                    std::map<std::string, std::vector<double> *> const &vectors,
-                    PFormat format,
-                    int myid = -1,
-                    int *myn1 = NULL,
-                    int *myn2 = NULL);
+enum Mode
+{
+    TEXT = 0,
+    BINARY = 1
+};
+
+
+VTL_API void export_polydata(std::string const &filename,
+                             int step,
+                             std::vector<double> const &pos,
+                             std::map<std::string, std::vector<double> *> const &scalars,
+                             std::map<std::string, std::vector<double> *> const &vectors,
+                             PFormat format);
+
+VTL_API void export_spoints_LEGACY(std::string const &filename,
+                                   int step, 
+                                   SPoints const &grid,
+                                   Mode mode);
+
+VTL_API void export_spoints_XML(std::string const &filename,
+                                int step,
+                                SPoints const &grid, 
+                                SPoints const &mygrid,
+                                Zip zip);
 
 VTL_API void export_spoints_XMLP(std::string const &filename,
-                        int step,
-                        vtl::SPoints const &grid, 
-                        vtl::SPoints const &mygrid, 
-                        std::vector<vtl::SPoints> const &sgrids,
-                        bool binary,
-                        bool usez
-                        );
-// -- "more-OO" interface
+                                 int step,
+                                 SPoints const &grid,
+                                 SPoints const &mygrid,
+                                 std::vector<SPoints> const &sgrids,
+                                 Zip zip);
 
-VTL_API void export_spoints2(std::string const &filename,
-                    int step, 
-                    vtl::SPoints const &grid, 
-                    vtl::SPoints const &mygrid,
-                    PFormat format);
-
+}
 
 #endif // VTL_H

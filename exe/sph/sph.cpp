@@ -8,6 +8,8 @@
 #include <cmath>
 #include <cassert>
 
+using namespace vtl;
+
 int main(int argc, char *argv[])
 {
     // creation of a cube of particles

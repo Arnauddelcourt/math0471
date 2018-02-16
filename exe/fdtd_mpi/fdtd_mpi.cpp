@@ -124,14 +124,14 @@ int main(int argc, char *argv[])
             }
         }
 
-        // save results to disk
-        export_spoints2("fdtd", nstep, grid, mygrid, XML_BIN);
-        export_spoints2("fdtdz", nstep, grid, mygrid, XML_BINZ);
+        // save results of the mpi process to disk
+        export_spoints_XML("fdtd", nstep, grid, mygrid, UNZIPPED);
+        export_spoints_XML("fdtdz", nstep, grid, mygrid, ZIPPED);
 
         if (myid == 0) // save main pvti file by rank0
         {
-            export_spoints_XMLP("fdtd", nstep, grid, mygrid, sgrids, true, false);
-            export_spoints_XMLP("fdtdz", nstep, grid, mygrid, sgrids, true, true);
+            export_spoints_XMLP("fdtd", nstep, grid, mygrid, sgrids, UNZIPPED);
+            export_spoints_XMLP("fdtdz", nstep, grid, mygrid, sgrids, ZIPPED);
         }
     }
 
