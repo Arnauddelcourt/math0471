@@ -21,7 +21,7 @@ int main(int argc, char *argv[])
     meshcube(o, L, s, pos);
 
     // creation of dummy pressure/density/velocity fields &
-    int nbp = pos.size() / 3;
+    int nbp = (int)pos.size() / 3;
     std::cout << nbp << " particles created\n";
     std::vector<double> pressure(nbp);
     std::vector<double> density(nbp);

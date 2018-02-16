@@ -48,7 +48,10 @@ int main(int argc, char *argv[])
         std::cout << myid << ": we have " << numprocs << " processes\n";
         int nthreads = omp_get_max_threads();
         std::cout << myid << ": we have " << nthreads << " threads\n";
-        std::cout << "OMP_NUM_THREADS=" << getenv("OMP_NUM_THREADS") << '\n';
+		char *omp_num_t = getenv("OMP_NUM_THREADS");
+		
+		std::cout << "OMP_NUM_THREADS="	
+					<< (omp_num_t? omp_num_t : "undefined") << '\n';
     }
 
     // get my grid indices

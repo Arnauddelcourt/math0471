@@ -10,7 +10,7 @@ SPoints::SPoints() : id(-1), o(), np1(), np2(), dx()
 {
 }
 
-std::ostream &
+VTL_API std::ostream &
 vtl::operator<<(std::ostream &out, vtl::SPoints const &obj)
 {
     out << "SPoints: np=" << obj.np() << "\n";

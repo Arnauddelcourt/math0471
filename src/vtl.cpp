@@ -86,7 +86,7 @@ void export_polydata_LEGACY(std::string const &filename,
     //std::cout << "system is " << (isCpuLittleEndian? "little" : "big") << " endian\n";
     //bool binary=false;
 
-    int nbp = pos.size() / 3;
+    int nbp = (int)pos.size() / 3;
     assert(pos.size() == nbp * 3); // should be multiple of 3
 
     // build file name + stepno + vtk extension
@@ -187,7 +187,7 @@ size_t write_vectorXML(std::ofstream &f, std::vector<double> const &pos, bool us
     if (!usez)
     {
         // data block size
-        uint32_t sz = pos.size() * sizeof(float);
+        uint32_t sz = (int)pos.size() * sizeof(float);
         f.write((char *)&sz, sizeof(uint32_t));
         written += sizeof(uint32_t);
         // data
@@ -205,7 +205,7 @@ size_t write_vectorXML(std::ofstream &f, std::vector<double> const &pos, bool us
         for (int i = 0; i < pos.size(); ++i)
             buffer[i] = (float)pos[i];
 
-        size_t sourcelen = pos.size() * sizeof(float);
+        uLong sourcelen = (uLong)pos.size() * sizeof(float);
         uLongf destlen = uLongf(sourcelen * 1.001) + 12; // see doc
         char *destbuffer = new char[destlen];
 #ifdef USE_ZLIB
@@ -259,7 +259,7 @@ size_t write_vectorXML(std::ofstream &f, std::vector<int> const &pos, bool usez)
     if (!usez)
     {
         // data block size
-        uint32_t sz = pos.size() * sizeof(int);
+		uint32_t sz = (uint32_t)pos.size() * sizeof(int);
         f.write((char *)&sz, sizeof(uint32_t));
         written += sizeof(uint32_t);
         // data
@@ -272,8 +272,8 @@ size_t write_vectorXML(std::ofstream &f, std::vector<int> const &pos, bool usez)
     }
     else
     {
-        size_t sourcelen = pos.size() * sizeof(int);
-        uLongf destlen = size_t(sourcelen * 1.001) + 12; // see doc
+        uLong sourcelen = (uLong)pos.size() * sizeof(int);
+        uLongf destlen = uLongf(sourcelen * 1.001) + 12; // see doc
         char *destbuffer = new char[destlen];
 #ifdef USE_ZLIB
         int status = compress2((Bytef *)destbuffer, &destlen,
@@ -339,7 +339,7 @@ void export_polydata_XML(std::string const &filename,
     }
 #endif
 
-    int nbp = pos.size() / 3;
+    int nbp = (int)pos.size() / 3;
     assert(pos.size() == nbp * 3); // should be multiple of 3
 
     // build file name + stepno + vtk extension
@@ -523,7 +523,7 @@ void export_polydata_XML(std::string const &filename,
 
 // interface
 
-void export_polydata(std::string const &filename,
+VTL_API void export_polydata(std::string const &filename,
                      int step,
                      std::vector<double> const &pos,
                      std::map<std::string, std::vector<double> *> const &scalars,
@@ -924,7 +924,7 @@ void export_spoints_XML2(std::string const &filename,
 }
 
 
-void export_spoints_XMLP(std::string const &filename,
+VTL_API void export_spoints_XMLP(std::string const &filename,
                         int step,
                         SPoints const &grid, 
                         SPoints const &mygrid, 
@@ -1016,7 +1016,7 @@ void export_spoints_XMLP(std::string const &filename,
     f.close();
 }
 
-void export_spoints(std::string const &filename, int step,
+VTL_API void export_spoints(std::string const &filename, int step,
                     double o[3],
                     double dx[3],
                     int np[3],

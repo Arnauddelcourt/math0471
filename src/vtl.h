@@ -3,7 +3,7 @@
 
 
 #if defined(WIN32)
-#ifdef vtl_EXPORTS
+#ifdef vtklite_EXPORTS
 #define VTL_API __declspec(dllexport)
 #else
 #define VTL_API __declspec(dllimport)
@@ -12,15 +12,32 @@
 #define VTL_API
 #endif
 
+#ifdef _MSC_VER
+#if !defined(_CRT_SECURE_NO_WARNINGS)
+#define _CRT_SECURE_NO_WARNINGS 1
+#endif
+
+#pragma warning(disable : 4251) // DLL/templates non exportes
+//#pragma warning(disable : 4275) // non - DLL-interface classkey 'identifier' used as base for DLL-interface classkey 'identifier'
+//#pragma warning(disable : 4190) // C-linkage prb (gmm)
+//#pragma warning(disable : 4477) // 'sscanf_s' : format string '%s' requires an argument of type
+
+#endif //_MSC_VER
+
+
 
 #include <string>
 #include <vector>
 #include <map>
+#define _USE_MATH_DEFINES // otherwise, M_PI undefined in VS
+#include <math.h>
+
 #include "vtlSPoints.h"
+
 namespace vtl 
 {
     class SPoints;
-    class UPoints;
+    //class UPoints;
 }
 
 enum PFormat
@@ -31,14 +48,14 @@ enum PFormat
     XML_BINZ = 3
 };
 
-void export_polydata(std::string const &filename,
+VTL_API void export_polydata(std::string const &filename,
                      int step,
                      std::vector<double> const &pos,
                      std::map<std::string, std::vector<double> *> const &scalars,
                      std::map<std::string, std::vector<double> *> const &vectors,
                      PFormat format);
 
-void export_spoints(std::string const &filename,
+VTL_API void export_spoints(std::string const &filename,
                     int step,
                     double o[3],
                     double dx[3],
@@ -50,7 +67,7 @@ void export_spoints(std::string const &filename,
                     int *myn1 = NULL,
                     int *myn2 = NULL);
 
-void export_spoints_XMLP(std::string const &filename,
+VTL_API void export_spoints_XMLP(std::string const &filename,
                         int step,
                         vtl::SPoints const &grid, 
                         vtl::SPoints const &mygrid, 
@@ -60,7 +77,7 @@ void export_spoints_XMLP(std::string const &filename,
                         );
 // -- "more-OO" interface
 
-void export_spoints2(std::string const &filename,
+VTL_API void export_spoints2(std::string const &filename,
                     int step, 
                     vtl::SPoints const &grid, 
                     vtl::SPoints const &mygrid,

@@ -29,11 +29,11 @@ class VTL_API SPoints
 
 
     SPoints();
-    SPoints split(int numprocs, int myid);
+	SPoints split(int numprocs, int myid);
     Vec3d L() const { return Vec3d(np2-np1)*dx; }
-    Vec3i np() const { return np2-np1+1; }
-    int nbp() const { Vec3i a = np(); return a[0]*a[1]*a[2]; }
-    friend std::ostream &operator<<(std::ostream &out, SPoints const &obj);   
+	Vec3i np() const { return np2-np1+1; }
+	int nbp() const { Vec3i a = np(); return a[0]*a[1]*a[2]; }
+    friend VTL_API std::ostream &operator<<(std::ostream &out, SPoints const &obj);
 };
 }
 
