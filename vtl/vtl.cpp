@@ -631,7 +631,7 @@ void export_spoints_LEGACY2(std::string const &filename,
     f << std::scientific;
     // header
     f << "# vtk DataFile Version 3.0\n";
-    f << "file written by vtklite\n";
+    f << "file written by vtl\n";
     f << (binary ? "BINARY\n" : "ASCII\n");
     f << "DATASET STRUCTURED_POINTS\n";
 

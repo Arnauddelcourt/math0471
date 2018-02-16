@@ -1,9 +1,9 @@
-#ifndef VTKLITE_H
-#define VTKLITE_H
+#ifndef VTL_H
+#define VTL_H
 
 
 #if defined(WIN32)
-#ifdef vtklite_EXPORTS
+#ifdef vtl_EXPORTS
 #define VTL_API __declspec(dllexport)
 #else
 #define VTL_API __declspec(dllimport)
@@ -16,15 +16,8 @@
 #if !defined(_CRT_SECURE_NO_WARNINGS)
 #define _CRT_SECURE_NO_WARNINGS 1
 #endif
-
 #pragma warning(disable : 4251) // DLL/templates non exportes
-//#pragma warning(disable : 4275) // non - DLL-interface classkey 'identifier' used as base for DLL-interface classkey 'identifier'
-//#pragma warning(disable : 4190) // C-linkage prb (gmm)
-//#pragma warning(disable : 4477) // 'sscanf_s' : format string '%s' requires an argument of type
-
 #endif //_MSC_VER
-
-
 
 #include <string>
 #include <vector>
@@ -84,4 +77,4 @@ VTL_API void export_spoints2(std::string const &filename,
                     PFormat format);
 
 
-#endif // VTKLITE_H
+#endif // VTL_H

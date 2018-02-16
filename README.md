@@ -12,7 +12,7 @@ The following [output formats](https://www.vtk.org/wp-content/uploads/2015/04/fi
   * XML VTK, Appended-Raw Binary (similar size to "Legacy VTK, Binary" - `.vtp`/`.vti` extension)
   * XML VTK, Compressed Appended-Raw Binary (smallest size - `.vtp`/`.vti` extension - requires [zlib](https://www.zlib.net/))
 
-The `src` folder contains the library.
+The `vtl` folder contains the library.
 
 The `exe` folder contains 2 dummy solvers (sph/fdtd) which
   * create a mesh
