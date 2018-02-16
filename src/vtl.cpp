@@ -19,6 +19,7 @@ using namespace vtl;
 #include <zlib.h>
 #else
 #define Z_OK 0
+#define uLong  size_t
 #define uLongf size_t
 #endif
 

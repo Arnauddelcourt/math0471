@@ -10,6 +10,8 @@
 
 namespace vtl
 {
+    class SPoints;
+    VTL_API std::ostream &operator<<(std::ostream &out, SPoints const &obj);
 
 // a structured grid
 
