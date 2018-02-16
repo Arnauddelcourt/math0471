@@ -1,7 +1,10 @@
 // example of hybrid MPI/OpenMP program
 //     run with 2 processes and 6 threads per process (ubuntu)
 //         export OMP_NUM_THREADS=6
-//         mpirun -np 2 -cpus-per-rank 6 --bind-to core:overload-allowed  exe/fdtd_mpi/fdtd_mpi
+//         [ubuntu - openmpi]
+//         mpirun -np 2 -cpus-per-rank 6 --bind-to core:overload-allowed  bin/fdtd_mpi
+//         [windows - microsoft mpi]
+//         mpiexec -np 2 bin\fdtd_mpi
 
 #include "vtl.h"
 #include "vtlSPoints.h"
@@ -33,7 +36,8 @@ int main(int argc, char *argv[])
     //grid.np = grid.np2 - grid.np1 + 1; // nb of points
     grid.dx = L / (grid.np() - 1);  // compute spacing
 
-    int nstepT = 1; // nb of time steps
+    int nstepT = 20; // nb of time steps
+    int saveResults = true;
 
     // MPI init
     MPI_Init(&argc, &argv);
@@ -84,6 +88,8 @@ int main(int argc, char *argv[])
     mygrid.scalars["scalar Z"] = &scalarZ;
     mygrid.vectors["vector SIN"] = &vectorSIN;
 
+    //MPI_Barrier(MPI_COMM_WORLD);
+
     // NOTE: the origin is the same for all subdomains
 
     // time step loop
@@ -123,15 +129,17 @@ int main(int argc, char *argv[])
                 }
             }
         }
-
-        // save results of the mpi process to disk
-        export_spoints_XML("fdtd", nstep, grid, mygrid, UNZIPPED);
-        export_spoints_XML("fdtdz", nstep, grid, mygrid, ZIPPED);
-
-        if (myid == 0) // save main pvti file by rank0
+        if(saveResults)
         {
-            export_spoints_XMLP("fdtd", nstep, grid, mygrid, sgrids, UNZIPPED);
-            export_spoints_XMLP("fdtdz", nstep, grid, mygrid, sgrids, ZIPPED);
+            // save results of the mpi process to disk
+            export_spoints_XML("fdtd", nstep, grid, mygrid, UNZIPPED);
+            export_spoints_XML("fdtdz", nstep, grid, mygrid, ZIPPED);
+
+            if (myid == 0) // save main pvti file by rank0
+            {
+                export_spoints_XMLP("fdtd", nstep, grid, mygrid, sgrids, UNZIPPED);
+                export_spoints_XMLP("fdtdz", nstep, grid, mygrid, sgrids, ZIPPED);
+            }
         }
     }
 
