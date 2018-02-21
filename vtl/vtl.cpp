@@ -85,9 +85,6 @@ void export_polydata_LEGACY(std::string const &filename,
                             std::map<std::string, std::vector<double> *> const &vectors,
                             bool binary)
 {
-    //std::cout << "system is " << (isCpuLittleEndian? "little" : "big") << " endian\n";
-    //bool binary=false;
-
     int nbp = (int)pos.size() / 3;
     assert(pos.size() == nbp * 3); // should be multiple of 3
 
@@ -323,9 +320,6 @@ void export_polydata_XML(std::string const &filename,
                          bool binary,
                          bool usez)
 {
-//std::cout << "system is " << (isCpuLittleEndian? "little" : "big") << " endian\n";
-//bool binary=false;
-//bool usez=true;
 #if !defined(USE_ZLIB)
     if (binary && usez)
     {
@@ -367,29 +361,31 @@ void export_polydata_XML(std::string const &filename,
     // ------------------------------------------------------------------------------------
     f << "      <PointData>\n";
     // scalar fields
-    for (auto it = scalars.begin(); it != scalars.end(); ++it)
+    //for (auto it = scalars.begin(); it != scalars.end(); ++it)
+    for (auto const &p : scalars)
     {
-        assert(it->second->size() == nbp);
+        assert(p.second->size() == nbp);
         f << "        <DataArray type=\"Float32\" ";
-        f << " Name=\"" << it->first << "\" ";
+        f << " Name=\"" << p.first << "\" ";
         f << " format=\"appended\" ";
         f << " RangeMin=\"0\" ";
         f << " RangeMax=\"1\" ";
         f << " offset=\"" << offset << "\" />\n";
-        offset += write_vectorXML(f2, *it->second, usez);
+        offset += write_vectorXML(f2, *p.second, usez);
     }
     // vector fields
-    for (auto it = vectors.begin(); it != vectors.end(); ++it)
+    //for (auto it = vectors.begin(); it != vectors.end(); ++it)
+    for (auto const &p : vectors)
     {
-        assert(it->second->size() == 3 * nbp);
+        assert(p.second->size() == 3 * nbp);
         f << "        <DataArray type=\"Float32\" ";
-        f << " Name=\"" << it->first << "\" ";
+        f << " Name=\"" << p.first << "\" ";
         f << " NumberOfComponents=\"3\" ";
         f << " format=\"appended\" ";
         f << " RangeMin=\"0\" ";
         f << " RangeMax=\"1\" ";
         f << " offset=\"" << offset << "\" />\n";
-        offset += write_vectorXML(f2, *it->second, usez);
+        offset += write_vectorXML(f2, *p.second, usez);
     }
     f << "      </PointData>\n";
 
@@ -517,24 +513,24 @@ void export_polydata_XML(std::string const &filename,
 // interface
 
 VTL_API void vtl::export_polydata(std::string const &filename,
-                             int step,
-                             std::vector<double> const &pos,
-                             std::map<std::string, std::vector<double> *> const &scalars,
-                             std::map<std::string, std::vector<double> *> const &vectors,
-                             PFormat format)
+                                  int step,
+                                  std::vector<double> const &pos,
+                                  std::map<std::string, std::vector<double> *> const &scalars,
+                                  std::map<std::string, std::vector<double> *> const &vectors,
+                                  PFormat format)
 {
     switch (format)
     {
-    case LEGACY_TXT:
+    case PFormat::LEGACY_TXT:
         export_polydata_LEGACY(filename, step, pos, scalars, vectors, false);
         break;
-    case XML_BIN:
+    case PFormat::XML_BIN:
         export_polydata_XML(filename, step, pos, scalars, vectors, true, false);
         break;
-    case XML_BINZ:
+    case PFormat::XML_BINZ:
         export_polydata_XML(filename, step, pos, scalars, vectors, true, true);
         break;
-    case LEGACY_BIN:
+    case PFormat::LEGACY_BIN:
     default:
         export_polydata_LEGACY(filename, step, pos, scalars, vectors, true);
         break;
@@ -552,8 +548,8 @@ VTL_API void vtl::export_polydata(std::string const &filename,
 //   binary:   'true' for binary format, 'false' for ASCII
 
 VTL_API void vtl::export_spoints_LEGACY(std::string const &filename,
-                                   int step, SPoints const &grid,
-                                   Mode mode)
+                                        int step, SPoints const &grid,
+                                        Mode mode)
 {
     // build file name + stepno + vtk extension
     std::stringstream s;
@@ -566,7 +562,7 @@ VTL_API void vtl::export_spoints_LEGACY(std::string const &filename,
     // header
     f << "# vtk DataFile Version 3.0\n";
     f << "file written by vtl\n";
-    f << ((mode==BINARY) ? "BINARY\n" : "ASCII\n");
+    f << ((mode == Mode::BINARY) ? "BINARY\n" : "ASCII\n");
     f << "DATASET STRUCTURED_POINTS\n";
 
     // dataset = STRUCTURED_POINTS
@@ -580,19 +576,21 @@ VTL_API void vtl::export_spoints_LEGACY(std::string const &filename,
     f << "FIELD FieldData " << grid.scalars.size() + grid.vectors.size() << '\n';
 
     // scalar fields
-    for (auto it = grid.scalars.begin(); it != grid.scalars.end(); ++it)
+    //for (auto it = grid.scalars.begin(); it != grid.scalars.end(); ++it)
+    for (auto const &p : grid.scalars)
     {
-        assert(it->second->size() == nbp);
-        f << it->first << " 1 " << nbp << " float\n";
-        write_vectorLEGACY(f, *it->second, nbp, 1, (mode==BINARY));
+        assert(p.second->size() == nbp);
+        f << p.first << " 1 " << nbp << " float\n";
+        write_vectorLEGACY(f, *p.second, nbp, 1, (mode == Mode::BINARY));
     }
 
     // vector fields
-    for (auto it = grid.vectors.begin(); it != grid.vectors.end(); ++it)
+    //for (auto it = grid.vectors.begin(); it != grid.vectors.end(); ++it)
+    for (auto const &p : grid.vectors)
     {
-        assert(it->second->size() == 3 * nbp);
-        f << it->first << " 3 " << nbp << " float\n";
-        write_vectorLEGACY(f, *it->second, nbp, 3, (mode==BINARY));
+        assert(p.second->size() == 3 * nbp);
+        f << p.first << " 3 " << nbp << " float\n";
+        write_vectorLEGACY(f, *p.second, nbp, 3, (mode == Mode::BINARY));
     }
 
     // fields - CELL_DATA
@@ -611,12 +609,12 @@ VTL_API void vtl::export_spoints_LEGACY(std::string const &filename,
 // see http://www.vtk.org/Wiki/VTK_XML_Formats
 
 VTL_API void vtl::export_spoints_XML(std::string const &filename,
-                                int step,
-                                SPoints const &grid, SPoints const &mygrid,
-                                Zip zip)
+                                     int step,
+                                     SPoints const &grid, SPoints const &mygrid,
+                                     Zip zip)
 {
 #if !defined(USE_ZLIB)
-    if (zip==ZIPPED)
+    if (zip == ZIPPED)
     {
         std::cout << "INFO: zlib not present - vtk file will not be compressed!\n";
         zip = UNZIPPED;
@@ -648,7 +646,7 @@ VTL_API void vtl::export_spoints_XML(std::string const &filename,
     f << "<VTKFile type=\"ImageData\" version=\"0.1\" byte_order=\"";
     f << (isCpuLittleEndian ? "LittleEndian" : "BigEndian") << "\" ";
     f << "header_type=\"UInt32\" "; // UInt64 could be better (?)
-    if (zip==ZIPPED)
+    if (zip == Zip::ZIPPED)
         f << "compressor=\"vtkZLibDataCompressor\" ";
     f << ">\n";
 
@@ -670,30 +668,32 @@ VTL_API void vtl::export_spoints_XML(std::string const &filename,
     f << "      <PointData>\n";
 
     // scalar fields
-    for (auto it = mygrid.scalars.begin(); it != mygrid.scalars.end(); ++it)
+    //for (auto it = mygrid.scalars.begin(); it != mygrid.scalars.end(); ++it)
+    for (auto const &p : mygrid.scalars)
     {
         //assert(it->second->size() == nbp); // TODO
         f << "        <DataArray type=\"Float32\" ";
-        f << " Name=\"" << it->first << "\" ";
+        f << " Name=\"" << p.first << "\" ";
         f << " format=\"appended\" ";
         f << " RangeMin=\"0\" ";
         f << " RangeMax=\"1\" ";
         f << " offset=\"" << offset << "\" />\n";
-        offset += write_vectorXML(f2, *it->second, (zip==ZIPPED));
+        offset += write_vectorXML(f2, *p.second, (zip == Zip::ZIPPED));
     }
 
     // vector fields
-    for (auto it = mygrid.vectors.begin(); it != mygrid.vectors.end(); ++it)
+    //for (auto it = mygrid.vectors.begin(); it != mygrid.vectors.end(); ++it)
+    for (auto const &p : mygrid.vectors)
     {
         //assert(it->second->size() == 3 * nbp); // TODO
         f << "        <DataArray type=\"Float32\" ";
-        f << " Name=\"" << it->first << "\" ";
+        f << " Name=\"" << p.first << "\" ";
         f << " NumberOfComponents=\"3\" ";
         f << " format=\"appended\" ";
         f << " RangeMin=\"0\" ";
         f << " RangeMax=\"1\" ";
         f << " offset=\"" << offset << "\" />\n";
-        offset += write_vectorXML(f2, *it->second, (zip==ZIPPED));
+        offset += write_vectorXML(f2, *p.second, (zip == Zip::ZIPPED));
     }
     f << "      </PointData>\n";
 
@@ -724,14 +724,14 @@ VTL_API void vtl::export_spoints_XML(std::string const &filename,
 }
 
 VTL_API void vtl::export_spoints_XMLP(std::string const &filename,
-                                 int step,
-                                 SPoints const &grid,
-                                 SPoints const &mygrid,
-                                 std::vector<SPoints> const &sgrids, 
-                                 Zip zip)
+                                      int step,
+                                      SPoints const &grid,
+                                      SPoints const &mygrid,
+                                      std::vector<SPoints> const &sgrids,
+                                      Zip zip)
 {
 #if !defined(USE_ZLIB)
-    if (zip==ZIPPED)
+    if (zip == ZIPPED)
     {
         std::cout << "INFO: zlib not present - vtk file will not be compressed!\n";
         zip = UNZIPPED;
@@ -754,7 +754,7 @@ VTL_API void vtl::export_spoints_XMLP(std::string const &filename,
     f << "<VTKFile type=\"PImageData\" version=\"0.1\" byte_order=\"";
     f << (isCpuLittleEndian ? "LittleEndian" : "BigEndian") << "\" ";
     f << "header_type=\"UInt32\" "; // UInt64 should be better
-    if (zip==ZIPPED)
+    if (zip == Zip::ZIPPED)
         f << "compressor=\"vtkZLibDataCompressor\" ";
     f << ">\n";
 
@@ -770,16 +770,18 @@ VTL_API void vtl::export_spoints_XMLP(std::string const &filename,
     // ------------------------------------------------------------------------------------
     f << "      <PPointData>\n";
     // scalar fields
-    for (auto it = mygrid.scalars.begin(); it != mygrid.scalars.end(); ++it)
+    //for (auto it = mygrid.scalars.begin(); it != mygrid.scalars.end(); ++it)
+    for(auto const &p : mygrid.scalars)
     {
         f << "        <PDataArray type=\"Float32\" ";
-        f << " Name=\"" << it->first << "\" />\n";
+        f << " Name=\"" << p.first << "\" />\n";
     }
     // vector fields
-    for (auto it = mygrid.vectors.begin(); it != mygrid.vectors.end(); ++it)
+    //for (auto it = mygrid.vectors.begin(); it != mygrid.vectors.end(); ++it)
+    for (auto const &p : mygrid.vectors)
     {
         f << "        <PDataArray type=\"Float32\" ";
-        f << " Name=\"" << it->first << "\" ";
+        f << " Name=\"" << p.first << "\" ";
         f << " NumberOfComponents=\"3\" />\n";
     }
     f << "      </PPointData>\n";
@@ -790,18 +792,19 @@ VTL_API void vtl::export_spoints_XMLP(std::string const &filename,
 
     // ------------------------------------------------------------------------------------
 
-    for (auto it = sgrids.begin(); it != sgrids.end(); ++it)
+    //for (auto it = sgrids.begin(); it != sgrids.end(); ++it)
+    for (auto const &g : sgrids)
     {
         f << "    <Piece ";
         f << " Extent=\"";
-        f << it->np1[0] << ' ' << it->np2[0] << ' ';
-        f << it->np1[1] << ' ' << it->np2[1] << ' ';
-        f << it->np1[2] << ' ' << it->np2[2] << "\" ";
+        f << g.np1[0] << ' ' << g.np2[0] << ' ';
+        f << g.np1[1] << ' ' << g.np2[1] << ' ';
+        f << g.np1[2] << ' ' << g.np2[2] << "\" ";
 
         f << "Source=\"";
         std::stringstream s;
         s << filename;
-        s << "_r" << it->id;
+        s << "_r" << g.id;
         s << '_' << std::setw(8) << std::setfill('0') << step << ".vti";
         f << s.str() << "\" />\n";
     }

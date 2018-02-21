@@ -8,8 +8,8 @@
 #include <iostream>
 #include <map>
 #include <cmath>
-#include <cassert>
-#include <stdlib.h>
+//#include <cassert>
+//#include <stdlib.h>
 
 using namespace vtl;
 
@@ -80,10 +80,10 @@ int main(int argc, char *argv[])
         }
 
         // save results to disk
-        export_spoints_LEGACY("fdtd_t", nstep, grid, TEXT);
-        export_spoints_LEGACY("fdtd_b", nstep, grid, BINARY);
-        export_spoints_XML("fdtd", nstep, grid, grid, UNZIPPED);
-        export_spoints_XML("fdtdz", nstep, grid, grid, ZIPPED);
+        export_spoints_LEGACY("fdtd_t", nstep, grid, Mode::TEXT);
+        export_spoints_LEGACY("fdtd_b", nstep, grid, Mode::BINARY);
+        export_spoints_XML("fdtd", nstep, grid, grid, Zip::UNZIPPED);
+        export_spoints_XML("fdtdz", nstep, grid, grid, Zip::ZIPPED);
     }
 
     return 0;

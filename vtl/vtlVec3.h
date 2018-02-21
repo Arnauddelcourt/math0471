@@ -9,12 +9,12 @@ namespace vtl
 
 // a vector with 3 components
 
-template <class T>
+template <typename T>
 class Vec3
 {
-  public:
     T v[3];
 
+  public:
     explicit Vec3(T a1 = 0, T a2 = 0, T a3 = 0)
     {
         v[0] = a1;
@@ -77,18 +77,18 @@ class Vec3
         return Vec3<T>(-v[0], -v[1], -v[2]);
     }
     template <class U>
-    operator Vec3<U>(void) const // cast 
+    operator Vec3<U>(void) const // cast
     {
         return Vec3<U>(v[0], v[1], v[2]);
     }
     T &operator[](int i)
-    {   
+    {
         return v[i];
     }
     T operator[](int i) const
-    {   
+    {
         return v[i];
-    }     
+    }
 };
 
 typedef Vec3<double> Vec3d;

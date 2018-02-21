@@ -16,7 +16,7 @@
 #define _CRT_SECURE_NO_WARNINGS 1
 #endif
 #pragma warning(disable : 4251) // DLL/templates non exportes
-#endif                          //_MSC_VER
+#endif
 
 #include <string>
 #include <vector>
@@ -30,7 +30,7 @@ namespace vtl
 {
 class SPoints;
 
-enum PFormat
+enum class PFormat
 {
     LEGACY_TXT = 0,
     LEGACY_BIN = 1,
@@ -38,13 +38,13 @@ enum PFormat
     XML_BINZ = 3
 };
 
-enum Zip
+enum class Zip
 {
     UNZIPPED = 0,
     ZIPPED = 1
 };
 
-enum Mode
+enum class Mode
 {
     TEXT = 0,
     BINARY = 1
