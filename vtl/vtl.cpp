@@ -23,12 +23,15 @@ using namespace vtl;
 #define uLongf size_t
 #endif
 
-const int __one__ = 1;
-const bool isCpuLittleEndian = 1 == *(char *)(&__one__); // CPU endianness
+static const int __one__ = 1;
+static const bool isCpuLittleEndian = 1 == *(char *)(&__one__); // CPU endianness
 
-// this routine writes a vector of double as a vector of float to a legacy VTK file f.
-//  the vector is converted to float (32bits) and to "big endian" format
-//  (required by the legacy VTK format)
+/**
+ * @brief this routine writes a vector of double as a vector of float to a legacy VTK file f.
+ * 
+ * the vector is converted to float (32bits) and to "big endian" format
+ *  (required by the legacy VTK format)
+ */
 
 void write_vectorLEGACY(std::ofstream &f, std::vector<double> const &pos, int nbp, int nj, bool binary)
 {
@@ -70,14 +73,16 @@ void write_vectorLEGACY(std::ofstream &f, std::vector<double> const &pos, int nb
     }
 }
 
-// export results to paraview (VTK polydata - legacy file fomat)
-//   filename: file name without vtk extension
-//   pos:     positions (vector of size 3*number of particles)
-//   step:    time step number
-//   scalars: scalar fields defined on particles (map linking [field name] <=> [vector of results v1, v2, v3, v4, ...]
-//   vectors: vector fields defined on particles (map linking [field name] <=> [vector of results v1x, v1y, v1z, v2x, v2y, ...]
-//   binary:   'true' for binary format, 'false' for ASCII
-
+/**
+ * @brief export results to paraview (VTK polydata - legacy file fomat)
+ * 
+ * @param  filename: file name without vtk extension
+ * @param  pos:     positions (vector of size 3*number of particles)
+ * @param  step:    time step number
+ * @param  scalars: scalar fields defined on particles (map linking [field name] <=> [vector of results v1, v2, v3, v4, ...]
+ * @param   vectors: vector fields defined on particles (map linking [field name] <=> [vector of results v1x, v1y, v1z, v2x, v2y, ...]
+ * @param  binary:   'true' for binary format, 'false' for ASCII
+ */
 void export_polydata_LEGACY(std::string const &filename,
                             int step,
                             std::vector<double> const &pos,

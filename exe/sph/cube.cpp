@@ -2,10 +2,14 @@
 #include <iostream>
 #include <cmath> // ceil
 
-// build a cube of particles aligned with x,y,z axes.
-//  - o[3]: corner of the cube with the lowest (x,y,z) values
-//  - L[3]: edge lengths along x,y and z
-//  - s: particle spacing
+/**
+ * @brief build a cube of particles aligned with x,y,z axes.
+ *
+ * @param o corner of the cube with the lowest (x,y,z) values
+ * @param L edge lengths along x,y and z
+ * @param s particle spacing
+ * @param pos positions of particles
+ */
 
 void meshcube(double o[3], double L[3], double s, std::vector<double> &pos)
 {

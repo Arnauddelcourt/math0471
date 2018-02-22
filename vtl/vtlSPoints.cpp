@@ -24,6 +24,15 @@ vtl::operator<<(std::ostream &out, vtl::SPoints const &obj)
     return out;
 }
 
+/**
+ * @brief this function split the grid in "numprocs" parts and returns grid number "myid" 
+ * 
+ * The split algorithm consists in dividing the whole grid into "numprocs" grids along a given direction
+ * @param numprocs total number of MPI processes
+ * @param myid rank of the desired grid
+ * @return the grid of process rank \# myid 
+ */
+
 SPoints 
 SPoints::split(int numprocs, int myid)
 {

@@ -25,11 +25,14 @@
 #include <math.h>
 
 #include "vtlSPoints.h"
-
+/**
+ * @brief VTL: "VTK Lite" - tools for exporting results to Paraview 
+ */
 namespace vtl
 {
 class SPoints;
 
+/// Format used by the export functions
 enum class PFormat
 {
     LEGACY_TXT = 0,
@@ -38,12 +41,14 @@ enum class PFormat
     XML_BINZ = 3
 };
 
+/// Flag used to enable file compression (requires zlib)
 enum class Zip
 {
     UNZIPPED = 0,
     ZIPPED = 1
 };
 
+/// Text or binary output formats
 enum class Mode
 {
     TEXT = 0,

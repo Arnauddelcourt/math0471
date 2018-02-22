@@ -10,6 +10,10 @@
 
 using namespace vtl;
 
+/**
+ * @brief Dummy SPH simulation testing paraview export formats
+ */
+
 int main(int argc, char *argv[])
 {
     // creation of a cube of particles

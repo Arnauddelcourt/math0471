@@ -13,18 +13,21 @@ namespace vtl
     class SPoints;
     VTL_API std::ostream &operator<<(std::ostream &out, SPoints const &obj);
 
-// a structured grid
-
+/**
+ * @brief A structured set of points (vtkStructuredPoints in VTK)
+ */
 class VTL_API SPoints
 {
   public:
-    int id;     ///< rank of the grid
+    int id;     ///< MPI rank of the grid
     Vec3d o;    ///< origin
     Vec3i np1;  ///< starting indices
     Vec3i np2;  ///< ending indices
     Vec3d dx;   ///< spacing
     
-    std::map<std::string, std::vector<double> *> scalars;
+    /// scalar values stored at the points
+    std::map<std::string, std::vector<double> *> scalars; 
+    /// vector values stored at the points
     std::map<std::string, std::vector<double> *> vectors;
 
     SPoints();

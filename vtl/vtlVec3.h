@@ -7,7 +7,10 @@
 namespace vtl
 {
 
-// a vector with 3 components
+// 
+/**
+ * @brief A simple vector with 3 components of type T
+ */
 
 template <typename T>
 class Vec3
