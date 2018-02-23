@@ -35,7 +35,7 @@ if (DOXYGEN_FOUND)
 
     # note the option ALL which allows to build the docs together with the application
     # "make dox" rebuilds the doc
-    add_custom_target( dox ALL
+    add_custom_target( dox #ALL
         COMMAND ${DOXYGEN_EXECUTABLE} ${DOXYGEN_OUT}
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         COMMENT "Generating API documentation with Doxygen"
@@ -45,12 +45,15 @@ else (DOXYGEN_FOUND)
 endif (DOXYGEN_FOUND)
 # ------------------------------------------------------------------------
 
-# -- CTest
-enable_testing()
 
 
 
+ADD_SUBDIRECTORY( tools )
 ADD_SUBDIRECTORY( vtl )
 ADD_SUBDIRECTORY( exe/sph )
 ADD_SUBDIRECTORY( exe/fdtd )
 ADD_SUBDIRECTORY( exe/fdtd_mpi )
+
+# -- CTest
+enable_testing()
+ADD_SUBDIRECTORY( tests )
