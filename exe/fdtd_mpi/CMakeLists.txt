@@ -2,7 +2,23 @@ FILE(GLOB SRCS *.h *.cpp)
 ADD_EXECUTABLE(fdtd_mpi ${SRCS})
 
 # MPI --
-find_package(MPI REQUIRED)
+# --------------------------------------------------------------
+# Finds MPI (including MSMPI)
+# --------------------------------------------------------------
+if(WIN32)  
+    FIND_PATH(MPI_INCLUDE_PATH NAMES  mpi.h HINTS "$ENV{MSMPI_INC}")
+    if("${CMAKE_SIZEOF_VOID_P}" EQUAL 8)
+        set(MS_MPI_ARCH_DIR x64)
+        find_library(MPI_LIBRARIES msmpi PATHS "$ENV{MSMPI_LIB64}")
+    else()
+        set(MS_MPI_ARCH_DIR x86)
+        find_library(MPI_LIBRARIES msmpi PATHS "$ENV{MSMPI_LIB32}")
+    endif()
+else()
+    find_package(MPI REQUIRED)
+endif()
+# --------------------------------------------------------------
+
 include_directories(${MPI_INCLUDE_PATH})
 target_link_libraries(fdtd_mpi ${MPI_LIBRARIES})
 IF( MINGW )
