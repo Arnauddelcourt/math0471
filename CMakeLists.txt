@@ -45,6 +45,10 @@ else (DOXYGEN_FOUND)
 endif (DOXYGEN_FOUND)
 # ------------------------------------------------------------------------
 
+# -- CTest
+enable_testing()
+
+
 
 ADD_SUBDIRECTORY( vtl )
 ADD_SUBDIRECTORY( exe/sph )
