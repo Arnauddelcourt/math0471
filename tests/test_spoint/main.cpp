@@ -19,10 +19,10 @@ int main(int argc, char *argv[])
 
     SPoints grid;
     grid.o = Vec3d(10.0, 10.0, 10.0); // origin
-    Vec3d L(50.0, 60.0, 80.0); // box dimensions
+    Vec3d L(5.0, 3.0, 4.0); // box dimensions
 
     grid.np1 = Vec3i(0, 0, 0);       // first index
-    grid.np2 = Vec3i(25, 30, 40); // last index
+    grid.np2 = Vec3i(5, 3, 4); // last index
 
     grid.dx = L / (grid.np() - 1);  // compute spacing
 
@@ -80,10 +80,10 @@ int main(int argc, char *argv[])
         }
 
         // save results to disk
-        export_spoints_LEGACY("fdtd_t", nstep, grid, Mode::TEXT);
-        export_spoints_LEGACY("fdtd_b", nstep, grid, Mode::BINARY);
-        export_spoints_XML("fdtd", nstep, grid, grid, Zip::UNZIPPED);
-        export_spoints_XML("fdtdz", nstep, grid, grid, Zip::ZIPPED);
+        export_spoints_LEGACY("test_spoint", nstep, grid, Mode::TEXT);
+        //export_spoints_LEGACY("fdtd_b", nstep, grid, Mode::BINARY);
+        //export_spoints_XML("fdtd", nstep, grid, grid, Zip::UNZIPPED);
+        //export_spoints_XML("fdtdz", nstep, grid, grid, Zip::ZIPPED);
     }
 
     return 0;
