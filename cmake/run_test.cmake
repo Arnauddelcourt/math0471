@@ -9,13 +9,12 @@ endif( NOT test_cmd )
 if( NOT output_blessed )
    message( FATAL_ERROR "Variable output_blessed not defined" )
 endif( NOT output_blessed )
-# output_test contains the name of the output file the test_cmd will  
-produce
+# output_test contains the name of the output file the test_cmd will produce
 if( NOT output_test )
    message( FATAL_ERROR "Variable output_test not defined" )
 endif( NOT output_test )
 
-execute_command(
+execute_process(
    COMMAND ${test_cmd}
    COMMAND ${CMAKE_COMMAND} -E compare_files ${output_blessed} ${output_test}
    RESULT_VARIABLE test_not_successful
