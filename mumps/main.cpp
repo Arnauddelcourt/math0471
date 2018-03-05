@@ -22,233 +22,22 @@ using namespace vtl;
 
 int main(int argc, char *argv[])
 {
+    bool matlab = false; // save matrix to file [debug]
+
     int error = 0;
     MUMPS_INT ierr = MPI_Init(&argc, &argv);
     MUMPS_INT myid;
 
     ierr = MPI_Comm_rank(MPI_COMM_WORLD, &myid);
 
-    // setup grid
-
-    SPoints grid;
-    grid.o = Vec3d(10.0, 10.0, 10.0); // origin
-    Vec3d L(20.0, 30.0, 40.0);           // box dimensions
-
-    grid.np1 = Vec3i(0, 0, 0); // first index
-    grid.np2 = Vec3i(20, 30, 40); // last index
-
-    grid.dx = L / (grid.np() - 1); // compute spacing
-
-    int nstepT = 1; // nb of time steps
-
-    // creation of dummy fields
-    int nbp = grid.nbp();
-
-    std::cout << nbp << " points created\n";
-    std::cout << grid;
-
-    //std::vector<double> T(nbp);
-    //grid.scalars["Temp"] = &T;
-
-    // fill matrix
-
-    // MUMPS_INT n = 2;
-    // MUMPS_INT8 nnz = 2;
-    // MUMPS_INT irn[] = {1, 2};
-    // MUMPS_INT jcn[] = {1, 2};
-    // double a[2];
-    // double rhs[2];
-
-    std::vector<MUMPS_INT> irn;
-    std::vector<MUMPS_INT> jcn;
-    std::vector<double> A;
-    std::vector<double> rhs; //(grid.nbp());
-    grid.scalars["Temp"] = &rhs;
-    // build matrix & rhs
-
-    int npz1 = grid.np1[2];
-    int npz2 = grid.np2[2];
-    int npy1 = grid.np1[1];
-    int npy2 = grid.np2[1];
-    int npx1 = grid.np1[0];
-    int npx2 = grid.np2[0];
-    Vec3i np = grid.np();
-
-    auto loc = [=](int i, int j, int k) { return (k - npz1) * (np[1] * np[0]) + (j - npy1) * np[0] + (i - npx1) + 1; }; // +1 (fortran)
-
-    double dx2 = grid.dx[0] * grid.dx[0];
-    double dy2 = grid.dx[1] * grid.dx[1];
-    double dz2 = grid.dx[2] * grid.dx[2];
-
-    for (int k = npz1; k <= npz2; ++k)
-    {
-        double z = k * grid.dx[2] + grid.o[2];
-        for (int j = npy1; j <= npy2; ++j)
-        {
-            double y = j * grid.dx[1] + grid.o[1];
-            for (int i = npx1; i <= npx2; ++i)
-            {
-                double x = i * grid.dx[0] + grid.o[0];
-
-                int id = loc(i, j, k);
-
-                //
-
-                // BCs ===========================================
-
-                if (k == npz1) // impose dirichlet first
-                {
-                    // dirichlet
-                    irn.push_back(id);
-                    jcn.push_back(id);
-                    A.push_back(1.0);
-                    //irn.push_back(id);
-                    //jcn.push_back(loc(i, j, k + 1));
-                    //A.push_back(-1.0);
-                }
-                else if (k == npz2)
-                {
-                    // dirichlet
-                    irn.push_back(id);
-                    jcn.push_back(id);
-                    A.push_back(1.0);
-                    //irn.push_back(id);
-                    //jcn.push_back(loc(i, j, k - 1));
-                    //A.push_back(-1.0);
-                }
-                else if (j == npy1)
-                {
-                    // neumann
-                    irn.push_back(id);
-                    jcn.push_back(id);
-                    A.push_back(1.0);
-                    irn.push_back(id);
-                    jcn.push_back(loc(i, j + 1, k));
-                    A.push_back(-1.0);
-                }
-                else if (j == npy2)
-                {
-                    // neumann
-                    irn.push_back(id);
-                    jcn.push_back(id);
-                    A.push_back(1.0);
-                    irn.push_back(id);
-                    jcn.push_back(loc(i, j - 1, k));
-                    A.push_back(-1.0);
-                }
-                else if (i == npx1)
-                {
-                    // neumann
-                    irn.push_back(id);
-                    jcn.push_back(id);
-                    A.push_back(1.0);
-                    irn.push_back(id);
-                    jcn.push_back(loc(i + 1, j, k));
-                    A.push_back(-1.0);
-                }
-                else if (i == npx2)
-                {
-                    // neumann
-                    irn.push_back(id);
-                    jcn.push_back(loc(i - 1, j, k));
-                    A.push_back(1.0);
-                    irn.push_back(id);
-                    jcn.push_back(loc(i + 1, j, k));
-                    A.push_back(-1.0);
-                }
-                else
-                {
-
-                    if ((i != npx1) && (i != npx2) && (j != npy1) && (j != npy2) && (k != npz1) && (k != npz2))
-                    {
-                        irn.push_back(id);
-                        jcn.push_back(id);
-                        A.push_back(-2.0 * (1.0 / dx2 + 1.0 / dy2 + 1.0 / dz2));
-                    }
-                    // x
-                    if (i != npx1)
-                    {
-                        irn.push_back(id);
-                        jcn.push_back(loc(i - 1, j, k));
-                        A.push_back(1.0 / dx2);
-                    }
-                    if (i != npx2)
-                    {
-                        irn.push_back(id);
-                        jcn.push_back(loc(i + 1, j, k));
-                        A.push_back(1.0 / dx2);
-                    }
-                    // y
-                    if (j != npy1)
-                    {
-                        irn.push_back(id);
-                        jcn.push_back(loc(i, j - 1, k));
-                        A.push_back(1.0 / dy2);
-                    }
-                    if (j != npy2)
-                    {
-                        irn.push_back(id);
-                        jcn.push_back(loc(i, j + 1, k));
-                        A.push_back(1.0 / dy2);
-                    }
-
-                    // y
-                    if (k != npz1)
-                    {
-                        irn.push_back(id);
-                        jcn.push_back(loc(i, j, k - 1));
-                        A.push_back(1.0 / dz2);
-                    }
-                    if (k != npz2)
-                    {
-                        irn.push_back(id);
-                        jcn.push_back(loc(i, j, k + 1));
-                        A.push_back(1.0 / dz2);
-                    }
-                }
-
-                // rhs
-                if (k == npz1)
-                {
-                    rhs.push_back(1.0);
-                }
-                else if (k == npz2)
-                {
-                    rhs.push_back(2.0);
-                }
-                else
-                {
-                    rhs.push_back(0.0);
-                }
-                //std::cout << "rhs.size()=" << rhs.size() << '\n';
-            }
-        }
-    }
-
-    // -- save matrix to file
-    bool matlab=false;
-    std::ofstream f("matrix.m");
-    if (matlab)
-    {
-        std::cout << "saving matrix to file...\n";
-        
-        for (size_t i = 0; i < A.size(); ++i)
-        {
-            f << "A(" << irn[i] << "," << jcn[i] << ")=" << A[i] << ";\n";
-        }
-        for (size_t i = 0; i < rhs.size(); ++i)
-        {
-            f << "rhs(" << i + 1 << ")=" << rhs[i] << ";\n";
-        }
-    }
-    std::cout << "nnz=" << A.size() << '\n';
-
+    // -----------------------------------------------
+    // init MUMPS
     // -----------------------------------------------
 
     DMUMPS_STRUC_C id;
     id.comm_fortran = USE_COMM_WORLD;
-    id.par = 1;
-    id.sym = 0;
+    id.par = 1; // 1=host involved in factorization phase
+    id.sym = 0; // 0=unsymmetric
     id.job = JOB_INIT;
     std::cout << "Init MUMPS package.\n";
     dmumps_c(&id);
@@ -262,10 +51,211 @@ int main(int argc, char *argv[])
     {
         std::cout << "OK!\n";
     }
+    // -------------------------------------------------
 
-    /* Define the problem on the host */
+    SPoints grid;
+
     if (myid == 0)
     {
+
+        // setup grid
+
+        grid.o = Vec3d(10.0, 10.0, 10.0); // origin
+        Vec3d L(20.0, 30.0, 40.0);        // box dimensions
+
+        grid.np1 = Vec3i(0, 0, 0);    // first index
+        grid.np2 = Vec3i(20, 30, 40); // last index
+
+        grid.dx = L / (grid.np() - 1); // compute spacing
+
+        // creation of dummy fields
+        int nbp = grid.nbp();
+
+        std::cout << nbp << " points created\n";
+        std::cout << grid;
+
+        std::vector<MUMPS_INT> irn;
+        std::vector<MUMPS_INT> jcn;
+        std::vector<double> A;
+        std::vector<double> rhs; //(grid.nbp());
+        grid.scalars["Temp"] = &rhs;
+
+        // build matrix & rhs
+
+        int npz1 = grid.np1[2];
+        int npz2 = grid.np2[2];
+        int npy1 = grid.np1[1];
+        int npy2 = grid.np2[1];
+        int npx1 = grid.np1[0];
+        int npx2 = grid.np2[0];
+        Vec3i np = grid.np();
+
+        auto loc = [=](int i, int j, int k) { return (k - npz1) * (np[1] * np[0]) + (j - npy1) * np[0] + (i - npx1) + 1; }; // +1 (fortran)
+
+        double dx2 = grid.dx[0] * grid.dx[0];
+        double dy2 = grid.dx[1] * grid.dx[1];
+        double dz2 = grid.dx[2] * grid.dx[2];
+
+        for (int k = npz1; k <= npz2; ++k)
+        {
+            double z = k * grid.dx[2] + grid.o[2];
+            for (int j = npy1; j <= npy2; ++j)
+            {
+                double y = j * grid.dx[1] + grid.o[1];
+                for (int i = npx1; i <= npx2; ++i)
+                {
+                    double x = i * grid.dx[0] + grid.o[0];
+
+                    int id = loc(i, j, k);
+
+                    // BCs ===========================================
+
+                    if (k == npz1) // impose dirichlet first
+                    {
+                        // dirichlet
+                        irn.push_back(id);
+                        jcn.push_back(id);
+                        A.push_back(1.0);
+                        //irn.push_back(id);
+                        //jcn.push_back(loc(i, j, k + 1));
+                        //A.push_back(-1.0);
+                    }
+                    else if (k == npz2)
+                    {
+                        // dirichlet
+                        irn.push_back(id);
+                        jcn.push_back(id);
+                        A.push_back(1.0);
+                        //irn.push_back(id);
+                        //jcn.push_back(loc(i, j, k - 1));
+                        //A.push_back(-1.0);
+                    }
+                    else if (j == npy1)
+                    {
+                        // neumann
+                        irn.push_back(id);
+                        jcn.push_back(id);
+                        A.push_back(1.0);
+                        irn.push_back(id);
+                        jcn.push_back(loc(i, j + 1, k));
+                        A.push_back(-1.0);
+                    }
+                    else if (j == npy2)
+                    {
+                        // neumann
+                        irn.push_back(id);
+                        jcn.push_back(id);
+                        A.push_back(1.0);
+                        irn.push_back(id);
+                        jcn.push_back(loc(i, j - 1, k));
+                        A.push_back(-1.0);
+                    }
+                    else if (i == npx1)
+                    {
+                        // neumann
+                        irn.push_back(id);
+                        jcn.push_back(id);
+                        A.push_back(1.0);
+                        irn.push_back(id);
+                        jcn.push_back(loc(i + 1, j, k));
+                        A.push_back(-1.0);
+                    }
+                    else if (i == npx2)
+                    {
+                        // neumann
+                        irn.push_back(id);
+                        jcn.push_back(loc(i - 1, j, k));
+                        A.push_back(1.0);
+                        irn.push_back(id);
+                        jcn.push_back(loc(i + 1, j, k));
+                        A.push_back(-1.0);
+                    }
+                    else
+                    {
+
+                        if ((i != npx1) && (i != npx2) && (j != npy1) && (j != npy2) && (k != npz1) && (k != npz2))
+                        {
+                            irn.push_back(id);
+                            jcn.push_back(id);
+                            A.push_back(-2.0 * (1.0 / dx2 + 1.0 / dy2 + 1.0 / dz2));
+                        }
+                        // x
+                        if (i != npx1)
+                        {
+                            irn.push_back(id);
+                            jcn.push_back(loc(i - 1, j, k));
+                            A.push_back(1.0 / dx2);
+                        }
+                        if (i != npx2)
+                        {
+                            irn.push_back(id);
+                            jcn.push_back(loc(i + 1, j, k));
+                            A.push_back(1.0 / dx2);
+                        }
+                        // y
+                        if (j != npy1)
+                        {
+                            irn.push_back(id);
+                            jcn.push_back(loc(i, j - 1, k));
+                            A.push_back(1.0 / dy2);
+                        }
+                        if (j != npy2)
+                        {
+                            irn.push_back(id);
+                            jcn.push_back(loc(i, j + 1, k));
+                            A.push_back(1.0 / dy2);
+                        }
+
+                        // y
+                        if (k != npz1)
+                        {
+                            irn.push_back(id);
+                            jcn.push_back(loc(i, j, k - 1));
+                            A.push_back(1.0 / dz2);
+                        }
+                        if (k != npz2)
+                        {
+                            irn.push_back(id);
+                            jcn.push_back(loc(i, j, k + 1));
+                            A.push_back(1.0 / dz2);
+                        }
+                    }
+
+                    // rhs
+                    if (k == npz1)
+                    {
+                        rhs.push_back(1.0);
+                    }
+                    else if (k == npz2)
+                    {
+                        rhs.push_back(2.0);
+                    }
+                    else
+                    {
+                        rhs.push_back(0.0);
+                    }
+                    //std::cout << "rhs.size()=" << rhs.size() << '\n';
+                }
+            }
+        }
+
+        std::ofstream f("matrix.m");
+        if (matlab)
+        {
+            std::cout << "saving matrix to file...\n";
+
+            for (size_t i = 0; i < A.size(); ++i)
+            {
+                f << "A(" << irn[i] << "," << jcn[i] << ")=" << A[i] << ";\n";
+            }
+            for (size_t i = 0; i < rhs.size(); ++i)
+            {
+                f << "rhs(" << i + 1 << ")=" << rhs[i] << ";\n";
+            }
+        }
+        std::cout << "nnz=" << A.size() << '\n';
+
+        /* Define the problem on the host */
         id.n = rhs.size();
         id.nnz = A.size();
         id.irn = &irn[0];
@@ -303,7 +293,7 @@ int main(int argc, char *argv[])
     // id.ICNTL(28)  // parallel ordering [def=0=auto]
     // id.ICNTL(29)  // parallel ordering method (if scotch/parmetis) [def=0=auto]
     // id.ICNTL(30)  // compute some A^-1 entries
-    // id.ICNTL(31)  // keep factors [def=0=yes] 
+    // id.ICNTL(31)  // keep factors [def=0=yes]
     // id.ICNTL(32)  // forward elimination during factorization [def=0=disabled]
     // id.ICNTL(33)  // compute det(A)
     // id.ICNTL(34)  // NOT USED
@@ -339,22 +329,26 @@ int main(int argc, char *argv[])
             printf("An error has occured, please check error code returned by MUMPS.\n");
         }
     }
-    ierr = MPI_Finalize();
 
-    if (matlab)
+    if (myid == 0)
     {
-        std::cout << "saving solution to file...\n";
-        for (size_t i = 0; i < rhs.size(); ++i)
+        if (matlab)
         {
-            f << "sol(" << i + 1 << ")=" << rhs[i] << ";\n";
+            std::cout << "saving solution to file...\n";
+            for (size_t i = 0; i < id.n; ++i)
+            {
+                f << "sol(" << i + 1 << ")=" << id.rhs[i] << ";\n";
+            }
+            f << "[A\\rhs' sol']\n";
+            f << "error = norm(A\\rhs'-sol')\n";
+            f.close();
         }
-        f << "[A\\rhs' sol']\n";
-        f << "error = norm(A\\rhs'-sol')\n";
-        f.close();
+
+        // save results to disk
+        export_spoints_XML("laplace", 0, grid, grid, Zip::ZIPPED);
     }
 
-    // save results to disk
-    export_spoints_XML("laplace", 0, grid, grid, Zip::ZIPPED);
+    ierr = MPI_Finalize();
 
     return 0;
 }
