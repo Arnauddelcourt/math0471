@@ -275,10 +275,39 @@ int main(int argc, char *argv[])
     }
 #define ICNTL(I) icntl[(I)-1] /* macro s.t. indices match documentation */
     /* No outputs */
-    id.ICNTL(1) = -1;
-    id.ICNTL(2) = -1;
-    id.ICNTL(3) = -1;
-    id.ICNTL(4) = 0;
+    id.ICNTL(1) = -1; // stream for error messages [def=6]
+    id.ICNTL(2) = -1; // stream for diag printing, statistics, warnings [def=0]
+    id.ICNTL(3) = -1; // stream for global information [def=6]
+    id.ICNTL(4) = 0;  // level of printing [def=2]
+    // id.ICNTL(5)   // matrix input format
+    // id.ICNTL(6)   // permutation/scaling
+    // id.ICNTL(7)   // ordering
+    // id.ICNTL(8)   // scaling strategy [def=auto]
+    // id.ICNTL(9)   // use A or A^T [def=A]
+    // id.ICNTL(10)  // iterative refinement [def=0=disabled]
+    // id.ICNTL(11)  // compute statistics on error [def=0=disabled]
+    // id.ICNTL(12)  // ordering strategy for sym matrices [def=0=auto]
+    // id.ICNTL(13)  // parallelism of root node (scalapack) [def=0=parallel with scalapack]
+    // id.ICNTL(14)  // % incr of working space [def=20=20%]
+    // id.ICNTL(15-17)  // NOT USED
+    // id.ICNTL(18)  // distributed input matrix [def=0=centralized]
+    // id.ICNTL(19)  // Schur complement [def=0=no schur cplt]
+    // id.ICNTL(20)  // format of rhs [def=0=dense]
+    // id.ICNTL(21)  // distribution of solution vectors [def=0=centralized]
+    // id.ICNTL(22)  // out-of-core [def=0=in-core]
+    // id.ICNTL(23)  // max memory [def=0=estimate]
+    // id.ICNTL(24)  // null pivot detectio [def=0=disabled]
+    // id.ICNTL(25)  // solution for deficiant matrix [def=0=1 sol is returned]
+    // id.ICNTL(26)  // [see schur cplt]
+    // id.ICNTL(27)  // blocking size for multiple rhs [def=-32=auto]
+    // id.ICNTL(28)  // parallel ordering [def=0=auto]
+    // id.ICNTL(29)  // parallel ordering method (if scotch/parmetis) [def=0=auto]
+    // id.ICNTL(30)  // compute some A^-1 entries
+    // id.ICNTL(31)  // keep factors [def=0=yes] 
+    // id.ICNTL(32)  // forward elimination during factorization [def=0=disabled]
+    // id.ICNTL(33)  // compute det(A)
+    // id.ICNTL(34)  // NOT USED
+    // id.ICNTL(35)  // BLR factorization (def=0=disabled)
 
     /* Call the MUMPS package (analyse, factorization and solve). */
     std::cout << "Call the MUMPS package (analyse, factorization and solve).\n";
