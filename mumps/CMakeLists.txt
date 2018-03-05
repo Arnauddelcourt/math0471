@@ -40,7 +40,8 @@ endif()
 
 # MUMPS -- 
 
-SET(MUMPSDIR /home/boman/src/mumps-5.1.2)
+#SET(MUMPSDIR /home/boman/src/mumps-5.1.2)
+SET(MUMPSDIR C:/mingw-w64/src/mumps-5.1.2)
 
 find_path(MUMPS_INCLUDE_DIRS NAMES "dmumps_c.h" PATHS ${MUMPSDIR}/include NO_SYSTEM_ENVIRONMENT_PATH)
 message(STATUS "MUMPS_INCLUDE_DIRS=" ${MUMPS_INCLUDE_DIRS})
@@ -58,7 +59,20 @@ message(STATUS "COMMONLIB=" ${COMMONLIB})
 message(STATUS "PORDLIB=" ${PORDLIB})
 
 target_link_libraries(test_mumps ${DMUMPSLIB} ${COMMONLIB} ${PORDLIB})
-target_link_libraries(test_mumps -lgfortran)
-target_link_libraries(test_mumps -L${MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_scalapack_lp64 -lmkl_gf_lp64 -lmkl_gnu_thread -lmkl_core -lmkl_blacs_openmpi_lp64 -lgomp -lpthread -lm -ldl)
-target_link_libraries(test_mumps -pthread -I/usr/lib/openmpi/lib -Wl,-rpath -Wl,/usr/lib/openmpi/lib -Wl,--enable-new-dtags -L/usr/lib/openmpi/lib -lmpi_usempif08 -lmpi_usempi_ignore_tkr -lmpi_mpifh -lmpi)
+# ubuntu
+#target_link_libraries(test_mumps -lgfortran)
+#target_link_libraries(test_mumps -L${MKLROOT}/lib/intel64 -Wl,--no-as-needed -lmkl_scalapack_lp64 -lmkl_gf_lp64 -lmkl_gnu_thread -lmkl_core -lmkl_blacs_openmpi_lp64 -lgomp -lpthread -lm -ldl)
+#target_link_libraries(test_mumps -pthread -I/usr/lib/openmpi/lib -Wl,-rpath -Wl,/usr/lib/openmpi/lib -Wl,--enable-new-dtags -L/usr/lib/openmpi/lib -lmpi_usempif08 -lmpi_usempi_ignore_tkr -lmpi_mpifh -lmpi)
+
+target_link_libraries(test_mumps  "C:/Program Files (x86)/IntelSWTools/compilers_and_libraries/windows/mkl/lib/intel64/mkl_scalapack_lp64_dll.lib" )
+target_link_libraries(test_mumps  "C:/Program Files (x86)/IntelSWTools/compilers_and_libraries/windows/mkl/lib/intel64/mkl_blacs_lp64_dll.lib" )
+target_link_libraries(test_mumps  "C:/Program Files (x86)/IntelSWTools/compilers_and_libraries/windows/mkl/lib/intel64/mkl_intel_lp64_dll.lib" )
+target_link_libraries(test_mumps  "C:/Program Files (x86)/IntelSWTools/compilers_and_libraries/windows/mkl/lib/intel64/mkl_intel_thread_dll.lib" )
+target_link_libraries(test_mumps  "C:/Program Files (x86)/IntelSWTools/compilers_and_libraries/windows/mkl/lib/intel64/mkl_core_dll.lib" )
+target_link_libraries(test_mumps  "C:/Program Files (x86)/IntelSWTools/compilers_and_libraries/windows/compiler/lib/intel64/libiomp5md.lib")
+target_link_libraries(test_mumps  "C:/Program Files (x86)/Microsoft SDKs/MPI/Lib/x64/msmpifec.lib")
+target_link_libraries(test_mumps  "C:/Program Files (x86)/Microsoft SDKs/MPI/Lib/x64/msmpi.lib")
+target_link_libraries(test_mumps  "-lgfortran")
+
+# common
 target_link_libraries(test_mumps ${MPI_LIBRARIES})

@@ -55,8 +55,8 @@ int main(int argc, char *argv[])
 
     SPoints grid;
 
-    if (myid == 0)
-    {
+    //if (myid == 0)
+    //{
 
         // setup grid
 
@@ -238,7 +238,7 @@ int main(int argc, char *argv[])
                 }
             }
         }
-
+/*
         std::ofstream f("matrix.m");
         if (matlab)
         {
@@ -253,6 +253,7 @@ int main(int argc, char *argv[])
                 f << "rhs(" << i + 1 << ")=" << rhs[i] << ";\n";
             }
         }
+*/
         std::cout << "nnz=" << A.size() << '\n';
 
         /* Define the problem on the host */
@@ -262,7 +263,7 @@ int main(int argc, char *argv[])
         id.jcn = &jcn[0];
         id.a = &A[0];
         id.rhs = &rhs[0];
-    }
+    //}
 #define ICNTL(I) icntl[(I)-1] /* macro s.t. indices match documentation */
     /* No outputs */
     id.ICNTL(1) = -1; // stream for error messages [def=6]
@@ -322,7 +323,7 @@ int main(int argc, char *argv[])
     {
         if (!error)
         {
-            printf("Solution is : (%8.2f  %8.2f)\n", rhs[0], rhs[1]);
+            printf("Solution is : (%8.2f  %8.2f)\n", id.rhs[0], id.rhs[1]);
         }
         else
         {
@@ -334,6 +335,7 @@ int main(int argc, char *argv[])
     {
         if (matlab)
         {
+            /*
             std::cout << "saving solution to file...\n";
             for (size_t i = 0; i < id.n; ++i)
             {
@@ -342,6 +344,7 @@ int main(int argc, char *argv[])
             f << "[A\\rhs' sol']\n";
             f << "error = norm(A\\rhs'-sol')\n";
             f.close();
+            */
         }
 
         // save results to disk
