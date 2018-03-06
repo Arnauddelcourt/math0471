@@ -55,8 +55,7 @@ int main(int argc, char *argv[])
 
     SPoints grid;
 
-    //if (myid == 0)
-    //{
+
 
         // setup grid
 
@@ -71,6 +70,7 @@ int main(int argc, char *argv[])
         // creation of dummy fields
         int nbp = grid.nbp();
 
+     
         std::cout << nbp << " points created\n";
         std::cout << grid;
 
@@ -82,6 +82,9 @@ int main(int argc, char *argv[])
 
         // build matrix & rhs
 
+        if (myid == 0)
+        {         
+            
         int npz1 = grid.np1[2];
         int npz2 = grid.np2[2];
         int npy1 = grid.np1[1];
@@ -263,7 +266,8 @@ int main(int argc, char *argv[])
         id.jcn = &jcn[0];
         id.a = &A[0];
         id.rhs = &rhs[0];
-    //}
+    }
+
 #define ICNTL(I) icntl[(I)-1] /* macro s.t. indices match documentation */
     /* No outputs */
     id.ICNTL(1) = -1; // stream for error messages [def=6]
