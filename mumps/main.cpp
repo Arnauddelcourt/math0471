@@ -2,6 +2,7 @@
 
 #include "vtl.h"
 #include "vtlSPoints.h"
+#include "laplace.h"
 
 #include <string>
 #include <vector>
@@ -15,258 +16,48 @@ using namespace vtl;
 // from c_example.c ------
 #include "mpi.h"
 #include "dmumps_c.h"
-#define JOB_INIT -1
-#define JOB_END -2
-#define USE_COMM_WORLD -987654
+#define ICNTL(I) icntl[(I)-1] // macro s.t. indices match documentation
+
 // -----------------------
 
-int main(int argc, char *argv[])
+int get_my_rank()
 {
-    bool matlab = false; // save matrix to file [debug]
+    int myid;
+    int ierr = MPI_Comm_rank(MPI_COMM_WORLD, &myid);
+    return myid;
+}
 
-    int error = 0;
-    MUMPS_INT ierr = MPI_Init(&argc, &argv);
-    MUMPS_INT myid;
-
-    ierr = MPI_Comm_rank(MPI_COMM_WORLD, &myid);
-
-    // -----------------------------------------------
-    // init MUMPS
-    // -----------------------------------------------
-
-    DMUMPS_STRUC_C id;
-    id.comm_fortran = USE_COMM_WORLD;
-    id.par = 1; // 1=host involved in factorization phase
-    id.sym = 0; // 0=unsymmetric
-    id.job = JOB_INIT;
-    std::cout << "Init MUMPS package.\n";
-    dmumps_c(&id);
+void check_MUMPS(DMUMPS_STRUC_C &id)
+{
     if (id.infog[0] < 0)
     {
-        printf(" (PROC %d) ERROR RETURN: \tINFOG(1)= %d\n\t\t\t\tINFOG(2)= %d\n",
-               myid, id.infog[0], id.infog[1]);
-        error = 1;
+        std::cout << "[" << get_my_rank() << "] MUMPS Error:\n";
+        std::cout << "\tINFOG(1)=" << id.infog[0] << '\n';
+        std::cout << "\tINFOG(2)=" << id.infog[1] << std::endl;
     }
-    else
-    {
-        std::cout << "OK!\n";
-    }
-    // -------------------------------------------------
+}
 
-    SPoints grid;
+void init_MUMPS(DMUMPS_STRUC_C &id)
+{
+    id.comm_fortran = -987654; //USE_COMM_WORLD;
+    id.par = 1;                // 1=host involved in factorization phase
+    id.sym = 0;                // 0=unsymmetric
+    id.job = -1;
+    std::cout << "[" << get_my_rank() << "] Init MUMPS package." << std::endl;
+    dmumps_c(&id);
+    check_MUMPS(id);
+}
 
-    // setup grid
+void end_MUMPS(DMUMPS_STRUC_C &id)
+{
+    id.job = -2;
+    std::cout << "[" << get_my_rank() << "] Terminate MUMPS instance." << std::endl;
+    dmumps_c(&id);
+    check_MUMPS(id);
+}
 
-    grid.o = Vec3d(10.0, 10.0, 10.0); // origin
-    Vec3d L(20.0, 30.0, 40.0);        // box dimensions
-
-    grid.np1 = Vec3i(0, 0, 0);    // first index
-    grid.np2 = Vec3i(20, 30, 40); // last index
-
-    grid.dx = L / (grid.np() - 1); // compute spacing
-
-    // creation of dummy fields
-    int nbp = grid.nbp();
-
-    std::cout << nbp << " points created\n";
-    std::cout << grid;
-
-    std::vector<MUMPS_INT> irn;
-    std::vector<MUMPS_INT> jcn;
-    std::vector<double> A;
-    std::vector<double> rhs; //(grid.nbp());
-    grid.scalars["Temp"] = &rhs;
-
-    if (myid == 0)
-    {
-
-        // build matrix & rhs
-
-        int npz1 = grid.np1[2];
-        int npz2 = grid.np2[2];
-        int npy1 = grid.np1[1];
-        int npy2 = grid.np2[1];
-        int npx1 = grid.np1[0];
-        int npx2 = grid.np2[0];
-        Vec3i np = grid.np();
-
-        auto loc = [=](int i, int j, int k) { return (k - npz1) * (np[1] * np[0]) + (j - npy1) * np[0] + (i - npx1) + 1; }; // +1 (fortran)
-
-        double dx2 = grid.dx[0] * grid.dx[0];
-        double dy2 = grid.dx[1] * grid.dx[1];
-        double dz2 = grid.dx[2] * grid.dx[2];
-
-        for (int k = npz1; k <= npz2; ++k)
-        {
-            double z = k * grid.dx[2] + grid.o[2];
-            for (int j = npy1; j <= npy2; ++j)
-            {
-                double y = j * grid.dx[1] + grid.o[1];
-                for (int i = npx1; i <= npx2; ++i)
-                {
-                    double x = i * grid.dx[0] + grid.o[0];
-
-                    int id = loc(i, j, k);
-
-                    // BCs ===========================================
-
-                    if (k == npz1) // impose dirichlet first
-                    {
-                        // dirichlet
-                        irn.push_back(id);
-                        jcn.push_back(id);
-                        A.push_back(1.0);
-                        //irn.push_back(id);
-                        //jcn.push_back(loc(i, j, k + 1));
-                        //A.push_back(-1.0);
-                    }
-                    else if (k == npz2)
-                    {
-                        // dirichlet
-                        irn.push_back(id);
-                        jcn.push_back(id);
-                        A.push_back(1.0);
-                        //irn.push_back(id);
-                        //jcn.push_back(loc(i, j, k - 1));
-                        //A.push_back(-1.0);
-                    }
-                    else if (j == npy1)
-                    {
-                        // neumann
-                        irn.push_back(id);
-                        jcn.push_back(id);
-                        A.push_back(1.0);
-                        irn.push_back(id);
-                        jcn.push_back(loc(i, j + 1, k));
-                        A.push_back(-1.0);
-                    }
-                    else if (j == npy2)
-                    {
-                        // neumann
-                        irn.push_back(id);
-                        jcn.push_back(id);
-                        A.push_back(1.0);
-                        irn.push_back(id);
-                        jcn.push_back(loc(i, j - 1, k));
-                        A.push_back(-1.0);
-                    }
-                    else if (i == npx1)
-                    {
-                        // neumann
-                        irn.push_back(id);
-                        jcn.push_back(id);
-                        A.push_back(1.0);
-                        irn.push_back(id);
-                        jcn.push_back(loc(i + 1, j, k));
-                        A.push_back(-1.0);
-                    }
-                    else if (i == npx2)
-                    {
-                        // neumann
-                        irn.push_back(id);
-                        jcn.push_back(loc(i - 1, j, k));
-                        A.push_back(1.0);
-                        irn.push_back(id);
-                        jcn.push_back(loc(i + 1, j, k));
-                        A.push_back(-1.0);
-                    }
-                    else
-                    {
-
-                        if ((i != npx1) && (i != npx2) && (j != npy1) && (j != npy2) && (k != npz1) && (k != npz2))
-                        {
-                            irn.push_back(id);
-                            jcn.push_back(id);
-                            A.push_back(-2.0 * (1.0 / dx2 + 1.0 / dy2 + 1.0 / dz2));
-                        }
-                        // x
-                        if (i != npx1)
-                        {
-                            irn.push_back(id);
-                            jcn.push_back(loc(i - 1, j, k));
-                            A.push_back(1.0 / dx2);
-                        }
-                        if (i != npx2)
-                        {
-                            irn.push_back(id);
-                            jcn.push_back(loc(i + 1, j, k));
-                            A.push_back(1.0 / dx2);
-                        }
-                        // y
-                        if (j != npy1)
-                        {
-                            irn.push_back(id);
-                            jcn.push_back(loc(i, j - 1, k));
-                            A.push_back(1.0 / dy2);
-                        }
-                        if (j != npy2)
-                        {
-                            irn.push_back(id);
-                            jcn.push_back(loc(i, j + 1, k));
-                            A.push_back(1.0 / dy2);
-                        }
-
-                        // y
-                        if (k != npz1)
-                        {
-                            irn.push_back(id);
-                            jcn.push_back(loc(i, j, k - 1));
-                            A.push_back(1.0 / dz2);
-                        }
-                        if (k != npz2)
-                        {
-                            irn.push_back(id);
-                            jcn.push_back(loc(i, j, k + 1));
-                            A.push_back(1.0 / dz2);
-                        }
-                    }
-
-                    // rhs
-                    if (k == npz1)
-                    {
-                        rhs.push_back(1.0);
-                    }
-                    else if (k == npz2)
-                    {
-                        rhs.push_back(2.0);
-                    }
-                    else
-                    {
-                        rhs.push_back(0.0);
-                    }
-                    //std::cout << "rhs.size()=" << rhs.size() << '\n';
-                }
-            }
-        }
-        /*
-        std::ofstream f("matrix.m");
-        if (matlab)
-        {
-            std::cout << "saving matrix to file...\n";
-
-            for (size_t i = 0; i < A.size(); ++i)
-            {
-                f << "A(" << irn[i] << "," << jcn[i] << ")=" << A[i] << ";\n";
-            }
-            for (size_t i = 0; i < rhs.size(); ++i)
-            {
-                f << "rhs(" << i + 1 << ")=" << rhs[i] << ";\n";
-            }
-        }
-*/
-        std::cout << "nnz=" << A.size() << '\n';
-
-        /* Define the problem on the host */
-        id.n = rhs.size();
-        id.nnz = A.size();
-        id.irn = &irn[0];
-        id.jcn = &jcn[0];
-        id.a = &A[0];
-        id.rhs = &rhs[0];
-    }
-
-#define ICNTL(I) icntl[(I)-1] /* macro s.t. indices match documentation */
-    /* No outputs */
+void solve_MUMPS(DMUMPS_STRUC_C &id)
+{
     id.ICNTL(1) = -1; // stream for error messages [def=6]
     id.ICNTL(2) = -1; // stream for diag printing, statistics, warnings [def=0]
     id.ICNTL(3) = -1; // stream for global information [def=6]
@@ -301,36 +92,90 @@ int main(int argc, char *argv[])
     // id.ICNTL(34)  // NOT USED
     // id.ICNTL(35)  // BLR factorization (def=0=disabled)
 
-    /* Call the MUMPS package (analyse, factorization and solve). */
-    std::cout << "Call the MUMPS package (analyse, factorization and solve).\n";
+    std::cout << "[" << get_my_rank()
+              << "] Call the MUMPS package (analyse, factorization and solve)." << std::endl;
     id.job = 6;
     dmumps_c(&id);
-    if (id.infog[0] < 0)
-    {
-        printf(" (PROC %d) ERROR RETURN: \tINFOG(1)= %d\n\t\t\t\tINFOG(2)= %d\n",
-               myid, id.infog[0], id.infog[1]);
-        error = 1;
-    }
-    else
-    {
-        std::cout << "OK!\n";
-    }
+    check_MUMPS(id);
+}
 
-    /* Terminate instance. */
-    std::cout << "Terminate instance.\n";
-    id.job = JOB_END;
-    dmumps_c(&id);
+void host_work()
+{
+}
+
+void slave_work()
+{
+}
+
+int main(int argc, char *argv[])
+{
+    bool matlab = false; // save matrix to file [debug]
+
+    int error = 0;
+    int ierr = MPI_Init(&argc, &argv);
+    int myid = get_my_rank();
+
+    // initialise MUMPS
+
+    DMUMPS_STRUC_C id;
+    init_MUMPS(id);
+
+    SPoints grid;
+
+    // setup grid
+
+    grid.o = Vec3d(10.0, 10.0, 10.0); // origin
+    Vec3d L(20.0, 30.0, 40.0);        // box dimensions
+
+    grid.np1 = Vec3i(0, 0, 0);    // first index
+    grid.np2 = Vec3i(20, 30, 40); // last index
+
+    grid.dx = L / (grid.np() - 1); // compute spacing
+
+    // creation of dummy fields
+    int nbp = grid.nbp();
+
+    std::cout << nbp << " points created\n";
+    std::cout << grid;
+
+    std::vector<MUMPS_INT> irn;
+    std::vector<MUMPS_INT> jcn;
+    std::vector<double> A;
+    std::vector<double> rhs; //(grid.nbp());
+    grid.scalars["Temp"] = &rhs;
+
     if (myid == 0)
     {
-        if (!error)
+
+        fill_system(grid, irn, jcn, A, rhs);
+        /*
+        std::ofstream f("matrix.m");
+        if (matlab)
         {
-            printf("Solution is : (%8.2f  %8.2f)\n", id.rhs[0], id.rhs[1]);
+            std::cout << "saving matrix to file...\n";
+
+            for (size_t i = 0; i < A.size(); ++i)
+            {
+                f << "A(" << irn[i] << "," << jcn[i] << ")=" << A[i] << ";\n";
+            }
+            for (size_t i = 0; i < rhs.size(); ++i)
+            {
+                f << "rhs(" << i + 1 << ")=" << rhs[i] << ";\n";
+            }
         }
-        else
-        {
-            printf("An error has occured, please check error code returned by MUMPS.\n");
-        }
+*/
+        std::cout << "nnz=" << A.size() << '\n';
+
+        /* Define the problem on the host */
+        id.n = rhs.size();
+        id.nnz = A.size();
+        id.irn = &irn[0];
+        id.jcn = &jcn[0];
+        id.a = &A[0];
+        id.rhs = &rhs[0];
     }
+
+    solve_MUMPS(id);
 
     if (myid == 0)
     {
@@ -352,6 +197,7 @@ int main(int argc, char *argv[])
         export_spoints_XML("laplace", 0, grid, grid, Zip::ZIPPED);
     }
 
+    end_MUMPS(id);
     ierr = MPI_Finalize();
 
     return 0;

@@ -1,0 +1,15 @@
+#ifndef LAPLACE_H
+#define LAPLACE_H
+
+#include "vtl.h"
+#include "dmumps_c.h"
+#include <vector>
+
+void fill_system(vtl::SPoints &grid,
+                 std::vector<MUMPS_INT> &irn,
+                 std::vector<MUMPS_INT> &jcn,
+                 std::vector<double> &A,
+                 std::vector<double> &rhs);
+
+#endif //LAPLACE_H
+
