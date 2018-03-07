@@ -15,6 +15,10 @@
 ::   cmake -G "MinGW Makefiles" ..
 ::   mingw32-make -j 6
 ::   mpiexec -n 6 bin\fdtd_mpi
+::
+:: nettoyer "build" sous windows:
+::   cd build
+::   rd /q /s .
 
 echo setting MinGW-w64 environment
 
