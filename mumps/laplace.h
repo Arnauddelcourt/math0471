@@ -11,5 +11,13 @@ void fill_system(vtl::SPoints &grid,
                  std::vector<double> &A,
                  std::vector<double> &rhs);
 
+void save_matrix(std::string const &fname,
+                 std::vector<MUMPS_INT> &irn,
+                 std::vector<MUMPS_INT> &jcn,
+                 std::vector<double> &A);
+
+void save_vector(std::string const &fname,
+                 std::vector<double> &rhs);
+
 #endif //LAPLACE_H
 

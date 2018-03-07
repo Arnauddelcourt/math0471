@@ -182,3 +182,33 @@ void fill_system(SPoints &grid,
         }
     }
 }
+
+/**
+ * @brief fills a basic distretised-Laplace system of equations.
+ *        Particular Dirichlet and Neumann BCs are implemented.
+ */
+
+void save_matrix(std::string const &fname,
+                 std::vector<MUMPS_INT> &irn,
+                 std::vector<MUMPS_INT> &jcn,
+                 std::vector<double> &A)
+{
+    std::cout << "saving matrix to file \"" << fname << ".m\"..." << std::endl;
+    std::ofstream f(fname+".m");
+    for (size_t i = 0; i < A.size(); ++i)
+        f << fname << "(" << irn[i] << "," << jcn[i] << ")=" << A[i] << ";\n";
+    f.close();
+}
+
+void save_vector(std::string const &fname,
+                 std::vector<double> &rhs)
+{
+    std::cout << "saving vector to file \"" << fname << ".m\"..." << std::endl;
+    std::ofstream f(fname+".m");
+    for (size_t i = 0; i < rhs.size(); ++i)
+        f << fname << "(" << i + 1 << ")=" << rhs[i] << ";\n";
+    f.close();
+}
+
+//f << "[A\\rhs' sol']\n";
+//f << "error = norm(A\\rhs'-sol')\n";

@@ -58,10 +58,12 @@ void end_MUMPS(DMUMPS_STRUC_C &id)
 
 void solve_MUMPS(DMUMPS_STRUC_C &id)
 {
+    /*
     id.ICNTL(1) = -1; // stream for error messages [def=6]
     id.ICNTL(2) = -1; // stream for diag printing, statistics, warnings [def=0]
     id.ICNTL(3) = -1; // stream for global information [def=6]
     id.ICNTL(4) = 0;  // level of printing [def=2]
+    */
     // id.ICNTL(5)   // matrix input format
     // id.ICNTL(6)   // permutation/scaling
     // id.ICNTL(7)   // ordering
@@ -99,26 +101,9 @@ void solve_MUMPS(DMUMPS_STRUC_C &id)
     check_MUMPS(id);
 }
 
-void host_work()
-{
-}
-
-void slave_work()
-{
-}
-
-int main(int argc, char *argv[])
+void host_work(DMUMPS_STRUC_C &id)
 {
     bool matlab = false; // save matrix to file [debug]
-
-    int error = 0;
-    int ierr = MPI_Init(&argc, &argv);
-    int myid = get_my_rank();
-
-    // initialise MUMPS
-
-    DMUMPS_STRUC_C id;
-    init_MUMPS(id);
 
     SPoints grid;
 
@@ -128,7 +113,7 @@ int main(int argc, char *argv[])
     Vec3d L(20.0, 30.0, 40.0);        // box dimensions
 
     grid.np1 = Vec3i(0, 0, 0);    // first index
-    grid.np2 = Vec3i(20, 30, 40); // last index
+    grid.np2 = Vec3i(20, 20, 20); // last index
 
     grid.dx = L / (grid.np() - 1); // compute spacing
 
@@ -141,64 +126,55 @@ int main(int argc, char *argv[])
     std::vector<MUMPS_INT> irn;
     std::vector<MUMPS_INT> jcn;
     std::vector<double> A;
-    std::vector<double> rhs; //(grid.nbp());
+    std::vector<double> rhs;
     grid.scalars["Temp"] = &rhs;
 
-    if (myid == 0)
+    fill_system(grid, irn, jcn, A, rhs);
+    if(matlab)
     {
-
-        fill_system(grid, irn, jcn, A, rhs);
-        /*
-        std::ofstream f("matrix.m");
-        if (matlab)
-        {
-            std::cout << "saving matrix to file...\n";
-
-            for (size_t i = 0; i < A.size(); ++i)
-            {
-                f << "A(" << irn[i] << "," << jcn[i] << ")=" << A[i] << ";\n";
-            }
-            for (size_t i = 0; i < rhs.size(); ++i)
-            {
-                f << "rhs(" << i + 1 << ")=" << rhs[i] << ";\n";
-            }
-        }
-*/
-        std::cout << "nnz=" << A.size() << '\n';
-
-        /* Define the problem on the host */
-        id.n = rhs.size();
-        id.nnz = A.size();
-        id.irn = &irn[0];
-        id.jcn = &jcn[0];
-        id.a = &A[0];
-        id.rhs = &rhs[0];
+        save_matrix("A", irn, jcn, A);
+        save_vector("rhs", rhs);
     }
+    std::cout << "nnz=" << A.size() << '\n';
+
+    // Define the problem on the host
+    id.n = rhs.size();
+    id.nnz = A.size();
+    id.irn = &irn[0];
+    id.jcn = &jcn[0];
+    id.a = &A[0];
+    id.rhs = &rhs[0];
 
     solve_MUMPS(id);
 
-    if (myid == 0)
-    {
-        if (matlab)
-        {
-            /*
-            std::cout << "saving solution to file...\n";
-            for (size_t i = 0; i < id.n; ++i)
-            {
-                f << "sol(" << i + 1 << ")=" << id.rhs[i] << ";\n";
-            }
-            f << "[A\\rhs' sol']\n";
-            f << "error = norm(A\\rhs'-sol')\n";
-            f.close();
-            */
-        }
+    if (matlab)
+        save_vector("sol", rhs);
 
-        // save results to disk
-        export_spoints_XML("laplace", 0, grid, grid, Zip::ZIPPED);
-    }
+    // save results to disk
+    export_spoints_XML("laplace", 0, grid, grid, Zip::ZIPPED);
+}
 
+void slave_work(DMUMPS_STRUC_C &id)
+{
+    solve_MUMPS(id);  
+}
+
+int main(int argc, char *argv[])
+{
+    // initialise MUMPS/MPI
+    MPI_Init(&argc, &argv);
+    DMUMPS_STRUC_C id;
+    init_MUMPS(id);
+
+    // split work among processes
+    if (get_my_rank() == 0)
+        host_work(id);
+    else
+        slave_work(id);
+
+    // finalise MUMPS/MPI
     end_MUMPS(id);
-    ierr = MPI_Finalize();
+    MPI_Finalize();
 
     return 0;
 }
