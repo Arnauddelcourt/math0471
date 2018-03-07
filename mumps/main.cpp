@@ -55,30 +55,30 @@ int main(int argc, char *argv[])
 
     SPoints grid;
 
-    //if (myid == 0)
-    //{
+    // setup grid
 
-        // setup grid
+    grid.o = Vec3d(10.0, 10.0, 10.0); // origin
+    Vec3d L(20.0, 30.0, 40.0);        // box dimensions
 
-        grid.o = Vec3d(10.0, 10.0, 10.0); // origin
-        Vec3d L(20.0, 30.0, 40.0);        // box dimensions
+    grid.np1 = Vec3i(0, 0, 0);    // first index
+    grid.np2 = Vec3i(20, 30, 40); // last index
 
-        grid.np1 = Vec3i(0, 0, 0);    // first index
-        grid.np2 = Vec3i(20, 30, 40); // last index
+    grid.dx = L / (grid.np() - 1); // compute spacing
 
-        grid.dx = L / (grid.np() - 1); // compute spacing
+    // creation of dummy fields
+    int nbp = grid.nbp();
 
-        // creation of dummy fields
-        int nbp = grid.nbp();
+    std::cout << nbp << " points created\n";
+    std::cout << grid;
 
-        std::cout << nbp << " points created\n";
-        std::cout << grid;
+    std::vector<MUMPS_INT> irn;
+    std::vector<MUMPS_INT> jcn;
+    std::vector<double> A;
+    std::vector<double> rhs; //(grid.nbp());
+    grid.scalars["Temp"] = &rhs;
 
-        std::vector<MUMPS_INT> irn;
-        std::vector<MUMPS_INT> jcn;
-        std::vector<double> A;
-        std::vector<double> rhs; //(grid.nbp());
-        grid.scalars["Temp"] = &rhs;
+    if (myid == 0)
+    {
 
         // build matrix & rhs
 
@@ -238,7 +238,7 @@ int main(int argc, char *argv[])
                 }
             }
         }
-/*
+        /*
         std::ofstream f("matrix.m");
         if (matlab)
         {
@@ -263,7 +263,8 @@ int main(int argc, char *argv[])
         id.jcn = &jcn[0];
         id.a = &A[0];
         id.rhs = &rhs[0];
-    //}
+    }
+
 #define ICNTL(I) icntl[(I)-1] /* macro s.t. indices match documentation */
     /* No outputs */
     id.ICNTL(1) = -1; // stream for error messages [def=6]
