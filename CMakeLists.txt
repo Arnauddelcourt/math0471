@@ -18,6 +18,10 @@ check_cxx_compiler_flag("-std=c++11" STD11CHECK)
 IF(STD11CHECK)
     ADD_DEFINITIONS(-std=c++11 )
 ENDIF()
+IF("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+    ADD_DEFINITIONS(-Wno-literal-suffix)
+ENDIF()
+
 
 # add doxygen ------------------------------------------------------------
 # from https://vicrucann.github.io/tutorials/quick-cmake-doxygen/

@@ -1,6 +1,6 @@
 
-export LIB=/home/boman/src/mumps-5.1.2/lib
-export INCLUDE=/home/boman/src/mumps-5.1.2/include
+export LIB=${HOME}/src/mumps-5.1.2/lib
+export INCLUDE=${HOME}/src/mumps-5.1.2/include
 
 if [ -z "${MKLROOT}" ]; then
     :
