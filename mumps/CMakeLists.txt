@@ -38,19 +38,10 @@ if(OPENMP_FOUND)
     set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
 endif()
 
-<<<<<<< Updated upstream
-# MUMPS -- 
-
-#SET(MUMPSDIR /home/boman/src/mumps-5.1.2)
-SET(MUMPSDIR C:/mingw-w64/src/mumps-5.1.2)
-
-find_path(MUMPS_INCLUDE_DIRS NAMES "dmumps_c.h" PATHS ${MUMPSDIR}/include NO_SYSTEM_ENVIRONMENT_PATH)
-=======
 # MUMPS ----------------------------------------------------------- 
 MESSAGE("Looking for MUMPS...")
 # mumps include dir
 find_path(MUMPS_INCLUDE_DIRS NAMES "dmumps_c.h")
->>>>>>> Stashed changes
 message(STATUS "MUMPS_INCLUDE_DIRS=" ${MUMPS_INCLUDE_DIRS})
 if(NOT MUMPS_INCLUDE_DIRS)
     message(FATAL_ERROR "MUMPS include dir not found!")
@@ -107,17 +98,6 @@ target_link_libraries(test_mumps ${MKL_LIBRARIES})
 #-lmkl_gf_lp64 -lmkl_gnu_thread -lmkl_core -lmkl_blacs_openmpi_lp64 -lgomp -lpthread -lm -ldl)
 #target_link_libraries(test_mumps -pthread -I/usr/lib/openmpi/lib -Wl,-rpath -Wl,/usr/lib/openmpi/lib -Wl,--enable-new-dtags -L/usr/lib/openmpi/lib -lmpi_usempif08 -lmpi_usempi_ignore_tkr -lmpi_mpifh -lmpi)
 
-<<<<<<< Updated upstream
-target_link_libraries(test_mumps  "C:/Program Files (x86)/IntelSWTools/compilers_and_libraries/windows/mkl/lib/intel64/mkl_scalapack_lp64_dll.lib" )
-target_link_libraries(test_mumps  "C:/Program Files (x86)/IntelSWTools/compilers_and_libraries/windows/mkl/lib/intel64/mkl_blacs_lp64_dll.lib" )
-target_link_libraries(test_mumps  "C:/Program Files (x86)/IntelSWTools/compilers_and_libraries/windows/mkl/lib/intel64/mkl_intel_lp64_dll.lib" )
-target_link_libraries(test_mumps  "C:/Program Files (x86)/IntelSWTools/compilers_and_libraries/windows/mkl/lib/intel64/mkl_intel_thread_dll.lib" )
-target_link_libraries(test_mumps  "C:/Program Files (x86)/IntelSWTools/compilers_and_libraries/windows/mkl/lib/intel64/mkl_core_dll.lib" )
-target_link_libraries(test_mumps  "C:/Program Files (x86)/IntelSWTools/compilers_and_libraries/windows/compiler/lib/intel64/libiomp5md.lib")
-target_link_libraries(test_mumps  "C:/Program Files (x86)/Microsoft SDKs/MPI/Lib/x64/msmpifec.lib")
-target_link_libraries(test_mumps  "C:/Program Files (x86)/Microsoft SDKs/MPI/Lib/x64/msmpi.lib")
-target_link_libraries(test_mumps  "-lgfortran")
-=======
 # nic4
 #target_link_libraries(test_mumps -lgfortran)
 #target_link_libraries(test_mumps  $ENV{MKLROOT}/lib/intel64/libmkl_scalapack_lp64.a -Wl,--start-group $ENV{MKLROOT}/lib/intel64/libmkl_gf_lp64.a $ENV{MKLROOT}/lib/intel64/libmkl_gnu_thread.a $ENV{MKLROOT}/lib/intel64/libmkl_core.a $ENV{MKLROOT}/lib/intel64/libmkl_blacs_openmpi_lp64.a -Wl,--end-group -lgomp -lpthread -lm -ldl)
@@ -138,7 +118,6 @@ target_link_libraries(test_mumps  "-lgfortran")
 
 
 
->>>>>>> Stashed changes
 
 # common
 target_link_libraries(test_mumps ${MPI_Fortran_LIBRARIES} ${MPI_LIBRARIES} ${CMAKE_Fortran_IMPLICIT_LINK_LIBRARIES})
