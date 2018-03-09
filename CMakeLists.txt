@@ -1,4 +1,5 @@
-PROJECT(VTKLITE CXX)
+PROJECT(VTKLITE CXX Fortran)
+# "Fortran" is required here because of MUMPS static library
 cmake_minimum_required(VERSION 3.0)
 
 # put all generated files in a single folder (required in windows for exe linked to dlls)
