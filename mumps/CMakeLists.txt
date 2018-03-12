@@ -90,3 +90,11 @@ target_link_libraries(test_mumps ${MKL_LIBRARIES})
 
 # MPI / Fortran ------------------
 target_link_libraries(test_mumps ${MPI_Fortran_LIBRARIES} ${MPI_LIBRARIES} ${CMAKE_Fortran_IMPLICIT_LINK_LIBRARIES})
+
+# RapidJSON include dir
+find_path(RAPIDJSON_INCLUDE_DIRS NAMES "rapidjson/rapidjson.h")
+message(STATUS "RAPIDJSON_INCLUDE_DIRS=" ${RAPIDJSON_INCLUDE_DIRS})
+if(NOT RAPIDJSON_INCLUDE_DIRS)
+    message(FATAL_ERROR "RapidJSON include dir not found!")
+endif()
+include_directories(${RAPIDJSON_INCLUDE_DIRS})
