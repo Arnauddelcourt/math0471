@@ -1,8 +1,9 @@
 {
     "grid.o" : [10.0, 12.0, 11.0],
     "grid.L" : [10.0, 10.0, 10.0],
-    "grid.np2" : [110, 110, 110],
+    "grid.np2" : [50, 50, 50],
     "matlab" : false,
-    "mumps.verb" : true
+    "mumps.verb" : false,
+    "save.vti" : false
 }
 

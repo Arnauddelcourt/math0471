@@ -158,7 +158,9 @@ void host_work(DMUMPS_STRUC_C &id, rapidjson::Document &d)
         save_vector("sol", rhs);
 
     // save results to disk
-    export_spoints_XML("laplace", 0, grid, grid, Zip::ZIPPED);
+    bool save_vti = read_bool(d, "save.vti", true);
+    if(save_vti)
+        export_spoints_XML("laplace", 0, grid, grid, Zip::ZIPPED);
 }
 
 void slave_work(DMUMPS_STRUC_C &id, rapidjson::Document &d)

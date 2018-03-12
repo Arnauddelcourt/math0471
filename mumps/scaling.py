@@ -1,9 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-
-import os
-
+import os, time
 
 def runtest(ne, nproc, omp):
 
@@ -19,28 +17,31 @@ def runtest(ne, nproc, omp):
         "grid.L" : [10.0, 10.0, 10.0],
         "grid.np2" : [%d, %d, %d],
         "matlab" : false,
-        "mumps.verb" : true
+        "mumps.verb" : true,
+        "save.vti" : false
     }
     """
 
-
-
-    #print inpfile % (np,np,np)
-
+    # write input file
     f = open('input.json','w')
     f.write(inpfile % (ne-1,ne-1,ne-1))
     f.close()
 
-
-
+    # run test
     os.environ['OMP_NUM_THREADS'] = '%d' % omp
     cmd = 'mpiexec -np %d %s input.json >out.txt' % (nproc, exename)
     #print "running '%s'" % cmd
-    print "running ne=%d, nproc=%d, omp=%d" % (ne, nproc, omp)
+    #print "running ne=%d, nproc=%d, omp=%d" % (ne, nproc, omp)
     os.system(cmd)
 
 if __name__=="__main__":
     ne = 10    
-    nproc = 2
-    omp = 3
-    runtest(ne, nproc, omp)
+    nproc = 6
+    omp = 2
+
+    print "ne\tnproc\tomp\telapsed"
+    for ne in range(10, 80, 10):
+        start = time.time()
+        runtest(ne, nproc, omp)
+        elapsed = time.time()-start
+        print ne, nproc, omp, elapsed
