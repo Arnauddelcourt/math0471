@@ -3,6 +3,7 @@
 #include "vtl.h"
 #include "vtlSPoints.h"
 #include "laplace.h"
+#include "readpars.h"
 
 #include <string>
 #include <vector>
@@ -10,6 +11,8 @@
 #include <fstream>
 #include <map>
 #include <cmath>
+
+#include "rapidjson/document.h"
 
 using namespace vtl;
 
@@ -56,14 +59,16 @@ void end_MUMPS(DMUMPS_STRUC_C &id)
     check_MUMPS(id);
 }
 
-void solve_MUMPS(DMUMPS_STRUC_C &id)
+void solve_MUMPS(DMUMPS_STRUC_C &id, bool verb)
 {
-    /*
-    id.ICNTL(1) = -1; // stream for error messages [def=6]
-    id.ICNTL(2) = -1; // stream for diag printing, statistics, warnings [def=0]
-    id.ICNTL(3) = -1; // stream for global information [def=6]
-    id.ICNTL(4) = 0;  // level of printing [def=2]
-    */
+    if(!verb)
+    {
+        id.ICNTL(1) = -1; // stream for error messages [def=6]
+        id.ICNTL(2) = -1; // stream for diag printing, statistics, warnings [def=0]
+        id.ICNTL(3) = -1; // stream for global information [def=6]
+        id.ICNTL(4) = 0;  // level of printing [def=2]
+    }
+
     // id.ICNTL(5)   // matrix input format
     // id.ICNTL(6)   // permutation/scaling
     // id.ICNTL(7)   // ordering
@@ -101,19 +106,20 @@ void solve_MUMPS(DMUMPS_STRUC_C &id)
     check_MUMPS(id);
 }
 
-void host_work(DMUMPS_STRUC_C &id)
+void host_work(DMUMPS_STRUC_C &id, rapidjson::Document &d)
 {
-    bool matlab = false; // save matrix to file [debug]
+    //bool matlab = false; // save matrix to file [debug]
+    bool matlab = read_bool(d, "matlab", false);
 
     SPoints grid;
 
     // setup grid
 
-    grid.o = Vec3d(10.0, 10.0, 10.0); // origin
-    Vec3d L(20.0, 30.0, 40.0);        // box dimensions
+    grid.o = read_Vec3d(d, "grid.o", Vec3d(10.0, 10.0, 10.0));     // origin
+    Vec3d L = read_Vec3d(d, "grid.L", Vec3d(20.0, 30.0, 40.0));    // box dimensions
 
-    grid.np1 = Vec3i(0, 0, 0);    // first index
-    grid.np2 = Vec3i(20, 20, 20); // last index
+    grid.np1 = read_Vec3i(d, "grid.np1", Vec3i(0, 0, 0));    // first index
+    grid.np2 = read_Vec3i(d, "grid.np2", Vec3i(20, 20, 20)); // last index
 
     grid.dx = L / (grid.np() - 1); // compute spacing
 
@@ -145,18 +151,22 @@ void host_work(DMUMPS_STRUC_C &id)
     id.a = &A[0];
     id.rhs = &rhs[0];
 
-    solve_MUMPS(id);
+    bool verb = read_bool(d, "mumps.verb", false);
+    solve_MUMPS(id, verb);
 
     if (matlab)
         save_vector("sol", rhs);
 
     // save results to disk
-    export_spoints_XML("laplace", 0, grid, grid, Zip::ZIPPED);
+    bool save_vti = read_bool(d, "save.vti", true);
+    if(save_vti)
+        export_spoints_XML("laplace", 0, grid, grid, Zip::ZIPPED);
 }
 
-void slave_work(DMUMPS_STRUC_C &id)
+void slave_work(DMUMPS_STRUC_C &id, rapidjson::Document &d)
 {
-    solve_MUMPS(id);  
+    bool verb = read_bool(d, "mumps.verb", false);
+    solve_MUMPS(id, verb);  
 }
 
 int main(int argc, char *argv[])
@@ -166,11 +176,24 @@ int main(int argc, char *argv[])
     DMUMPS_STRUC_C id;
     init_MUMPS(id);
 
+    // test arguments
+    if(argc!=2)
+    {
+        if (get_my_rank() == 0)
+            std::cout << "usage: " << argv[0] << " parameters.json" << std::endl;
+        MPI_Finalize();
+        return 1;
+    }
+
+    // read parameters
+    rapidjson::Document d;
+    read_json(argv[1], d);
+
     // split work among processes
     if (get_my_rank() == 0)
-        host_work(id);
+        host_work(id, d);
     else
-        slave_work(id);
+        slave_work(id, d);
 
     // finalise MUMPS/MPI
     end_MUMPS(id);

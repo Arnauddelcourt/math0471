@@ -1,4 +1,5 @@
-PROJECT(VTKLITE CXX)
+PROJECT(VTKLITE CXX Fortran)
+# "Fortran" is required here because of MUMPS static library
 cmake_minimum_required(VERSION 3.0)
 
 # put all generated files in a single folder (required in windows for exe linked to dlls)
@@ -17,6 +18,10 @@ check_cxx_compiler_flag("-std=c++11" STD11CHECK)
 IF(STD11CHECK)
     ADD_DEFINITIONS(-std=c++11 )
 ENDIF()
+IF("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+    ADD_DEFINITIONS(-Wno-literal-suffix)
+ENDIF()
+
 
 # add doxygen ------------------------------------------------------------
 # from https://vicrucann.github.io/tutorials/quick-cmake-doxygen/
@@ -50,6 +55,7 @@ endif (DOXYGEN_FOUND)
 
 ADD_SUBDIRECTORY( tools )
 ADD_SUBDIRECTORY( vtl )
+ADD_SUBDIRECTORY( json )
 ADD_SUBDIRECTORY( exe/sph )
 ADD_SUBDIRECTORY( exe/fdtd )
 ADD_SUBDIRECTORY( exe/fdtd_mpi )

@@ -22,16 +22,14 @@
 
 echo setting MinGW-w64 environment
 
-set INCLUDE=
+set INCLUDE=C:\mingw-w64\src\mumps-5.1.2\include
 ::set INCLUDE=%INCLUDE%;C:\local\MUMPS\include
 
-set LIB=
-::set LIB=c:\local\lib
+set LIB=C:\mingw-w64\src\mumps-5.1.2\lib
 
 set OMP_NUM_THREADS=1
 
 set PATH=C:\mingw-w64\mingw64\bin
-::set PATH=%PATH%;C:\MinGW\msys\1.0\bin
 set PATH=%PATH%;C:\Program Files\CMake\bin\
 set PATH=%PATH%;C:\Program Files\Microsoft MPI\Bin\
 
