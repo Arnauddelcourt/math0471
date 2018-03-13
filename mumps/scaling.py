@@ -5,7 +5,11 @@ import os, time
 
 def runtest(ne, nproc, omp):
 
-    exename = 'bin/test_mumps'
+
+    if os.sep=='\\':
+        exename = 'bin\\test_mumps.exe'
+    else:
+        exename = 'bin/test_mumps'
 
     if not os.path.isfile(exename):
         raise Exception("%s not found" % exename)
