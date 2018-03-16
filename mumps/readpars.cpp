@@ -8,7 +8,7 @@
 #include <iostream>
 #include <cstdio>
 
-using namespace vtl;
+//using namespace vtl;
 
 void read_json(std::string const &fname, rapidjson::Document &d)
 {

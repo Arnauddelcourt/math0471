@@ -14,7 +14,7 @@
 
 #include "rapidjson/document.h"
 
-using namespace vtl;
+//using namespace vtl;
 
 // from c_example.c ------
 #include "mpi.h"

@@ -28,8 +28,8 @@
 /**
  * @brief VTL: "VTK Lite" - tools for exporting results to Paraview 
  */
-namespace vtl
-{
+//namespace vtl
+//{
 class SPoints;
 
 /// Format used by the export functions
@@ -63,24 +63,26 @@ VTL_API void export_polydata(std::string const &filename,
                              std::map<std::string, std::vector<double> *> const &vectors,
                              PFormat format);
 
-VTL_API void export_spoints_LEGACY(std::string const &filename,
-                                   int step, 
-                                   SPoints const &grid,
-                                   Mode mode);
 
-VTL_API void export_spoints_XML(std::string const &filename,
-                                int step,
-                                SPoints const &grid, 
-                                SPoints const &mygrid,
-                                Zip zip);
 
-VTL_API void export_spoints_XMLP(std::string const &filename,
-                                 int step,
-                                 SPoints const &grid,
-                                 SPoints const &mygrid,
-                                 std::vector<SPoints> const &sgrids,
-                                 Zip zip);
 
-}
+void write_vector_LEGACY(std::ofstream &f, std::vector<double> const &pos, int nbp, int nj, bool binary);
+void export_polydata_LEGACY(std::string const &filename,
+                            int step,
+                            std::vector<double> const &pos,
+                            std::map<std::string, std::vector<double> *> const &scalars,
+                            std::map<std::string, std::vector<double> *> const &vectors,
+                            bool binary);
+std::string zlibstatus(int status);
+size_t write_vectorXML(std::ofstream &f, std::vector<double> const &pos, bool usez);
+size_t write_vectorXML(std::ofstream &f, std::vector<int> const &pos, bool usez);
+void export_polydata_XML(std::string const &filename,
+                         int step,
+                         std::vector<double> const &pos,
+                         std::map<std::string, std::vector<double> *> const &scalars,
+                         std::map<std::string, std::vector<double> *> const &vectors,
+                         bool binary,
+                         bool usez);
+//}
 
 #endif // VTL_H

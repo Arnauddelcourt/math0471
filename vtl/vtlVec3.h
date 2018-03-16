@@ -4,8 +4,8 @@
 #include "vtl.h"
 #include <iostream>
 
-namespace vtl
-{
+//namespace vtl
+//{
 
 // 
 /**
@@ -96,6 +96,6 @@ class Vec3
 
 typedef Vec3<double> Vec3d;
 typedef Vec3<int> Vec3i;
-}
+//}
 
 #endif //VTLVEC3_H

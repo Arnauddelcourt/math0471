@@ -4,14 +4,14 @@
 #include <sstream>
 #include <iomanip>
 
-using namespace vtl;
+//using namespace vtl;
 
 SPoints::SPoints() : id(-1), o(), np1(), np2(), dx()
 {
 }
 
 VTL_API std::ostream &
-vtl::operator<<(std::ostream &out, vtl::SPoints const &obj)
+operator<<(std::ostream &out, SPoints const &obj)
 {
     out << "SPoints: np=" << obj.np() << "\n";
     out << "\to = " << obj.o << '\n';

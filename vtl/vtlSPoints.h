@@ -8,8 +8,8 @@
 #include <vector>
 
 
-namespace vtl
-{
+//namespace vtl
+//{
     class SPoints;
     VTL_API std::ostream &operator<<(std::ostream &out, SPoints const &obj);
 
@@ -44,6 +44,6 @@ class VTL_API SPoints
 	int nbc() const { Vec3i a = nc(); return a[0]*a[1]*a[2]; }
     friend VTL_API std::ostream &operator<<(std::ostream &out, SPoints const &obj);
 };
-}
+//}
 
 #endif //VTLSPOINTS_H

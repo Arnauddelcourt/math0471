@@ -2,6 +2,7 @@
 
 #include "vtl.h"
 #include "vtlSPoints.h"
+#include "vtl_spoints.h"
 
 #include <string>
 #include <vector>
@@ -11,7 +12,7 @@
 //#include <cassert>
 //#include <stdlib.h>
 
-using namespace vtl;
+//using namespace vtl;
 
 int main(int argc, char *argv[])
 {

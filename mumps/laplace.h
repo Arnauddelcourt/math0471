@@ -5,7 +5,7 @@
 #include "dmumps_c.h"
 #include <vector>
 
-void fill_system(vtl::SPoints &grid,
+void fill_system(SPoints &grid,
                  std::vector<MUMPS_INT> &irn,
                  std::vector<MUMPS_INT> &jcn,
                  std::vector<double> &A,

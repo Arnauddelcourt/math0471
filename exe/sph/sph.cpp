@@ -8,7 +8,7 @@
 #include <cmath>
 #include <cassert>
 
-using namespace vtl;
+//using namespace vtl;
 
 /**
  * @brief Dummy SPH simulation testing paraview export formats

@@ -10,7 +10,7 @@
 #include <map>
 #include <cmath>
 
-using namespace vtl;
+//using namespace vtl;
 
 /**
  * @brief fills a basic distretised-Laplace system of equations.

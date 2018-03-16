@@ -11,7 +11,7 @@
 //#include <cassert>
 //#include <stdlib.h>
 
-using namespace vtl;
+//using namespace vtl;
 
 int main(int argc, char *argv[])
 {
