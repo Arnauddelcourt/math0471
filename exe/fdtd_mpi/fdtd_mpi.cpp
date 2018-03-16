@@ -73,7 +73,7 @@ int main(int argc, char *argv[])
             sgrids[i] = grid.split(numprocs, i);
     }
 
-    // creation of dummy fields (over my subdomain)
+    // creation of dummy POINT fields (over my subdomain)
     int mynbp = mygrid.nbp();
 
     std::cout << myid << ": " << mynbp << " points created\n";
@@ -83,10 +83,17 @@ int main(int argc, char *argv[])
     std::vector<double> scalarZ(mynbp);
     std::vector<double> vectorSIN(mynbp * 3); // vector field
 
-    mygrid.scalars["scalar X"] = &scalarX;
-    mygrid.scalars["scalar Y"] = &scalarY;
-    mygrid.scalars["scalar Z"] = &scalarZ;
-    mygrid.vectors["vector SIN"] = &vectorSIN;
+    mygrid.scalars["scalar_X"] = &scalarX; // no space allowed in LEGACY format!
+    mygrid.scalars["scalar_Y"] = &scalarY;
+    mygrid.scalars["scalar_Z"] = &scalarZ;
+    mygrid.vectors["vector_SIN"] = &vectorSIN;
+
+    // creation of dummy CELL fields
+    int mynbc = mygrid.nbc();
+    std::vector<double> cscalarX(mynbc); // scalar field at cells
+    mygrid.cscalars["cscalar_X"] = &cscalarX;
+    std::vector<double> cvectorSIN(mynbc * 3); // vector field at cells
+    mygrid.cvectors["cvector_SIN"] = &cvectorSIN;
 
     //MPI_Barrier(MPI_COMM_WORLD);
 
@@ -101,6 +108,7 @@ int main(int argc, char *argv[])
         int npz1 = mygrid.np1[2];
         int npz2 = mygrid.np2[2];
         Vec3i np = mygrid.np();
+        Vec3i nc = mygrid.nc();
 
 #pragma omp parallel for
         for (int k = npz1; k <= npz2; ++k)
@@ -126,6 +134,17 @@ int main(int argc, char *argv[])
                     vectorSIN[idx * 3 + 0] = sin(2 * M_PI * (((x - (mygrid.o[0] + L[0] / 2.)) / L[0]) + time));
                     vectorSIN[idx * 3 + 1] = cos(2 * M_PI * (((y - (mygrid.o[1] + L[1] / 2.)) / L[1]) + time));
                     vectorSIN[idx * 3 + 2] = sin(2 * M_PI * (((z - (mygrid.o[2] + L[2] / 2.)) / L[2]) + time));
+
+                    // fill cell values
+                    if (i != npx2 && j != npy2 && k != npz2)
+                    {
+                        int idc = (k - npz1) * (nc[1] * nc[0]) + (j - npy1) * nc[0] + (i - npx1);
+
+                        cscalarX[idc] = x;
+                        cvectorSIN[idc * 3 + 0] = sin(2 * M_PI * (((x - (grid.o[0] + L[0] / 2.)) / L[0]) + time));
+                        cvectorSIN[idc * 3 + 1] = cos(2 * M_PI * (((y - (grid.o[1] + L[1] / 2.)) / L[1]) + time));
+                        cvectorSIN[idc * 3 + 2] = sin(2 * M_PI * (((z - (grid.o[2] + L[2] / 2.)) / L[2]) + time));
+                    }
                 }
             }
         }
