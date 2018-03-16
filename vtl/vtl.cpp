@@ -577,30 +577,50 @@ VTL_API void vtl::export_spoints_LEGACY(std::string const &filename,
 
     // fields - POINT_DATA
     int nbp = grid.nbp();
-    f << "POINT_DATA " << nbp << '\n';
-    f << "FIELD FieldData " << grid.scalars.size() + grid.vectors.size() << '\n';
-
-    // scalar fields
-    //for (auto it = grid.scalars.begin(); it != grid.scalars.end(); ++it)
-    for (auto const &p : grid.scalars)
+    if(nbp!=0)
     {
-        assert(p.second->size() == nbp);
-        f << p.first << " 1 " << nbp << " float\n";
-        write_vectorLEGACY(f, *p.second, nbp, 1, (mode == Mode::BINARY));
-    }
+        f << "POINT_DATA " << nbp << '\n';
+        f << "FIELD FieldData " << grid.scalars.size() + grid.vectors.size() << '\n';
 
-    // vector fields
-    //for (auto it = grid.vectors.begin(); it != grid.vectors.end(); ++it)
-    for (auto const &p : grid.vectors)
-    {
-        assert(p.second->size() == 3 * nbp);
-        f << p.first << " 3 " << nbp << " float\n";
-        write_vectorLEGACY(f, *p.second, nbp, 3, (mode == Mode::BINARY));
-    }
+        // scalar fields
+        for (auto const &p : grid.scalars)
+        {
+            assert(p.second->size() == nbp);
+            f << p.first << " 1 " << nbp << " float\n";
+            write_vectorLEGACY(f, *p.second, nbp, 1, (mode == Mode::BINARY));
+        }
 
+        // vector fields
+        for (auto const &p : grid.vectors)
+        {
+            assert(p.second->size() == 3 * nbp);
+            f << p.first << " 3 " << nbp << " float\n";
+            write_vectorLEGACY(f, *p.second, nbp, 3, (mode == Mode::BINARY));
+        }
+    }
     // fields - CELL_DATA
-    // [TODO]
+    int nbc = grid.nbc();
+    if(nbc!=0)
+    {
+        f << "CELL_DATA " << nbc << '\n';
+        f << "FIELD FieldData " << grid.cscalars.size() + grid.cvectors.size() << '\n';
 
+        // scalar fields
+        for (auto const &p : grid.cscalars)
+        {
+            assert(p.second->size() == nbp);
+            f << p.first << " 1 " << nbc << " float\n";
+            write_vectorLEGACY(f, *p.second, nbc, 1, (mode == Mode::BINARY));
+        }
+
+        // vector fields
+        for (auto const &p : grid.cvectors)
+        {
+            assert(p.second->size() == 3 * nbc);
+            f << p.first << " 3 " << nbc << " float\n";
+            write_vectorLEGACY(f, *p.second, nbc, 3, (mode == Mode::BINARY));
+        }
+    }
     f.close();
 }
 
@@ -670,10 +690,10 @@ VTL_API void vtl::export_spoints_XML(std::string const &filename,
       << mygrid.np1[2] << ' ' << mygrid.np2[2] << "\">\n";
 
     // ------------------------------------------------------------------------------------
-    f << "      <PointData>\n";
+    // POINT DATA
 
+    f << "      <PointData>\n";
     // scalar fields
-    //for (auto it = mygrid.scalars.begin(); it != mygrid.scalars.end(); ++it)
     for (auto const &p : mygrid.scalars)
     {
         //assert(it->second->size() == nbp); // TODO
@@ -687,7 +707,6 @@ VTL_API void vtl::export_spoints_XML(std::string const &filename,
     }
 
     // vector fields
-    //for (auto it = mygrid.vectors.begin(); it != mygrid.vectors.end(); ++it)
     for (auto const &p : mygrid.vectors)
     {
         //assert(it->second->size() == 3 * nbp); // TODO
@@ -703,7 +722,35 @@ VTL_API void vtl::export_spoints_XML(std::string const &filename,
     f << "      </PointData>\n";
 
     // ------------------------------------------------------------------------------------
+    // CELL DATA
+
     f << "      <CellData>\n";
+    // scalar fields
+    for (auto const &p : mygrid.cscalars)
+    {
+        //assert(it->second->size() == nbc); // TODO
+        f << "        <DataArray type=\"Float32\" ";
+        f << " Name=\"" << p.first << "\" ";
+        f << " format=\"appended\" ";
+        f << " RangeMin=\"0\" ";
+        f << " RangeMax=\"1\" ";
+        f << " offset=\"" << offset << "\" />\n";
+        offset += write_vectorXML(f2, *p.second, (zip == Zip::ZIPPED));
+    }
+
+    // vector fields
+    for (auto const &p : mygrid.cvectors)
+    {
+        //assert(it->second->size() == 3 * nbc); // TODO
+        f << "        <DataArray type=\"Float32\" ";
+        f << " Name=\"" << p.first << "\" ";
+        f << " NumberOfComponents=\"3\" ";
+        f << " format=\"appended\" ";
+        f << " RangeMin=\"0\" ";
+        f << " RangeMax=\"1\" ";
+        f << " offset=\"" << offset << "\" />\n";
+        offset += write_vectorXML(f2, *p.second, (zip == Zip::ZIPPED));
+    }
     f << "      </CellData>\n";
 
     f2.close();
@@ -773,16 +820,16 @@ VTL_API void vtl::export_spoints_XMLP(std::string const &filename,
     f << "Spacing=\"" << grid.dx[0] << ' ' << grid.dx[1] << ' ' << grid.dx[2] << "\">\n";
 
     // ------------------------------------------------------------------------------------
+    // POINT DATA
+
     f << "      <PPointData>\n";
     // scalar fields
-    //for (auto it = mygrid.scalars.begin(); it != mygrid.scalars.end(); ++it)
     for(auto const &p : mygrid.scalars)
     {
         f << "        <PDataArray type=\"Float32\" ";
         f << " Name=\"" << p.first << "\" />\n";
     }
     // vector fields
-    //for (auto it = mygrid.vectors.begin(); it != mygrid.vectors.end(); ++it)
     for (auto const &p : mygrid.vectors)
     {
         f << "        <PDataArray type=\"Float32\" ";
@@ -792,12 +839,26 @@ VTL_API void vtl::export_spoints_XMLP(std::string const &filename,
     f << "      </PPointData>\n";
 
     // ------------------------------------------------------------------------------------
+    // CELL DATA
+
     f << "      <PCellData>\n";
+    // scalar fields
+    for(auto const &p : mygrid.cscalars)
+    {
+        f << "        <PDataArray type=\"Float32\" ";
+        f << " Name=\"" << p.first << "\" />\n";
+    }
+    // vector fields
+    for (auto const &p : mygrid.cvectors)
+    {
+        f << "        <PDataArray type=\"Float32\" ";
+        f << " Name=\"" << p.first << "\" ";
+        f << " NumberOfComponents=\"3\" />\n";
+    }
     f << "      </PCellData>\n";
 
     // ------------------------------------------------------------------------------------
 
-    //for (auto it = sgrids.begin(); it != sgrids.end(); ++it)
     for (auto const &g : sgrids)
     {
         f << "    <Piece ";

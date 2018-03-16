@@ -28,13 +28,20 @@ class VTL_API SPoints
     /// scalar values stored at the points
     std::map<std::string, std::vector<double> *> scalars; 
     /// vector values stored at the points
-    std::map<std::string, std::vector<double> *> vectors;
+    std::map<std::string, std::vector<double> *> vectors;    
+    
+    /// scalar values stored at the cells
+    std::map<std::string, std::vector<double> *> cscalars; 
+    /// vector values stored at the cells
+    std::map<std::string, std::vector<double> *> cvectors;
 
     SPoints();
 	SPoints split(int numprocs, int myid);
     Vec3d L() const { return Vec3d(np2-np1)*dx; }
 	Vec3i np() const { return np2-np1+1; }
+	Vec3i nc() const { return np2-np1; }
 	int nbp() const { Vec3i a = np(); return a[0]*a[1]*a[2]; }
+	int nbc() const { Vec3i a = nc(); return a[0]*a[1]*a[2]; }
     friend VTL_API std::ostream &operator<<(std::ostream &out, SPoints const &obj);
 };
 }
