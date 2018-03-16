@@ -2,6 +2,7 @@
 
 #include "vtl.h"
 #include "vtlSPoints.h"
+#include "vtl_spoints.h"
 #include "laplace.h"
 #include "readpars.h"
 
