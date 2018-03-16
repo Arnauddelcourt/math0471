@@ -1,5 +1,6 @@
 #include "cube.h"
 #include "vtl.h"
+#include "vtl_polydata.h"
 
 #include <string>
 #include <vector>
