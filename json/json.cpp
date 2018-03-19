@@ -57,6 +57,34 @@ JSON_API bool read_bool(rapidjson::Document const &d, char const *name, bool def
     return def;
 }
 
+JSON_API int read_int(rapidjson::Document const &d, char const *name, int def)
+{
+    if(d.HasMember(name))
+    {
+        if(!d[name].IsInt())
+        {
+            std::cout << "ERROR: \"" << name << "\" should be an integer" << std::endl;
+            abort(); 
+        }
+        return d[name].GetInt();
+    }
+    return def;
+}
+
+JSON_API double read_double(rapidjson::Document const &d, char const *name, double def)
+{
+    if(d.HasMember(name))
+    {
+        if(!d[name].IsNumber())
+        {
+            std::cout << "ERROR: \"" << name << "\" should be a number" << std::endl;
+            abort(); 
+        }
+        return d[name].GetDouble();
+    }
+    return def;
+}
+
 JSON_API Vec3d read_Vec3d(rapidjson::Document const &d, char const *name, Vec3d const &def)
 {
     if(d.HasMember(name))

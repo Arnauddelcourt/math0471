@@ -2,22 +2,27 @@
 
 #include "vtl_spoints.h"
 #include "vtlSPoints.h"
+#include "json.h"
 #include <iostream>
 
 int main(int argc, char *argv[])
 {
+    rapidjson::Document d;
+    // read parameters
+    if(argc>1)
+        read_json(argv[1], d);
+
     // Global grid parameters
 
     SPoints grid;
-    grid.o = Vec3d(10.0, 10.0, 10.0); // origin
-    Vec3d L(50.0, 60.0, 80.0);        // box dimensions
-
-    grid.np1 = Vec3i(0, 0, 0);    // first index
-    grid.np2 = Vec3i(25, 30, 40); // last index
+    grid.o = read_Vec3d(d, "grid.o", Vec3d(10.0, 10.0, 10.0));      // origin
+    Vec3d L = read_Vec3d(d, "grid.L", Vec3d(50.0, 60.0, 80.0));     // box dimensions
+    grid.np1 = read_Vec3i(d, "grid.np1", Vec3i(0, 0, 0));           // first index
+    grid.np2 = read_Vec3i(d, "grid.np2", Vec3i(25, 30, 40));        // last index
 
     grid.dx = L / (grid.np() - 1); // compute spacing
 
-    int nstepT = 1; // nb of time steps
+    int nstepT = read_int(d, "nstepT", 1); // nb of time steps
 
     // creation of dummy fields
     int nbp = grid.nbp();
@@ -40,6 +45,8 @@ int main(int argc, char *argv[])
     grid.cscalars["cscalar_X"] = &cscalarX;
     std::vector<double> cvectorSIN(nbc * 3); // vector field at cells
     grid.cvectors["cvector_SIN"] = &cvectorSIN;
+
+    std::cout << grid << std::endl;
 
     // time step loop
     for (int nstep = 0; nstep < nstepT; ++nstep)
@@ -91,11 +98,14 @@ int main(int argc, char *argv[])
         }
 
         // save results to disk
-
-        export_spoints_LEGACY("fdtd_t", nstep, grid, Mode::TEXT);
-        export_spoints_LEGACY("fdtd_b", nstep, grid, Mode::BINARY);
-        export_spoints_XML("fdtd", nstep, grid, grid, Zip::UNZIPPED);
-        export_spoints_XML("fdtdz", nstep, grid, grid, Zip::ZIPPED);
+        if(read_bool(d, "write.legacy.text", false))
+            export_spoints_LEGACY("fdtd_t", nstep, grid, Mode::TEXT);
+        if(read_bool(d, "write.legacy.bin", false))
+            export_spoints_LEGACY("fdtd_b", nstep, grid, Mode::BINARY);
+        if(read_bool(d, "write.xml.bin", false))
+            export_spoints_XML("fdtd", nstep, grid, grid, Zip::UNZIPPED);
+        if(read_bool(d, "write.xml.binz", false))
+            export_spoints_XML("fdtdz", nstep, grid, grid, Zip::ZIPPED);
     }
 
     return 0;
