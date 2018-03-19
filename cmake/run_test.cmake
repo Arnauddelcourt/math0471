@@ -14,6 +14,8 @@ if( NOT output_test )
    message( FATAL_ERROR "Variable output_test not defined" )
 endif( NOT output_test )
 
+SET(test_not_successful 0)
+
 execute_process(
    COMMAND ${test_cmd}
    COMMAND ${CMAKE_COMMAND} -E compare_files ${output_blessed} ${output_test}
@@ -21,6 +23,8 @@ execute_process(
    OUTPUT_QUIET
    ERROR_QUIET
    )
+
+message("test_not_successful=${test_not_successful}")
 
 if( test_not_successful )
    message( SEND_ERROR "${output_test} does not match ${output_blessed}!" )
