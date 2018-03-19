@@ -68,8 +68,6 @@ int main(int argc, char *argv[])
     // creation of dummy POINT fields (over my subdomain)
     int mynbp = mygrid.nbp();
 
-    std::cout << myid << ": " << mynbp << " points created\n";
-
     std::vector<double> scalarX(mynbp);
     std::vector<double> scalarY(mynbp);
     std::vector<double> scalarZ(mynbp);

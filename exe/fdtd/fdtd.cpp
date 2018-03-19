@@ -27,8 +27,6 @@ int main(int argc, char *argv[])
     // creation of dummy fields
     int nbp = grid.nbp();
 
-    std::cout << nbp << " points created\n";
-
     std::vector<double> scalarX(nbp);
     std::vector<double> scalarY(nbp);
     std::vector<double> scalarZ(nbp);

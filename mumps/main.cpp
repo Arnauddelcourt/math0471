@@ -116,14 +116,13 @@ void host_work(DMUMPS_STRUC_C &id, rapidjson::Document &d)
     // creation of dummy fields
     int nbp = grid.nbp();
 
-    std::cout << nbp << " points created\n";
-    std::cout << grid;
-
     std::vector<MUMPS_INT> irn;
     std::vector<MUMPS_INT> jcn;
     std::vector<double> A;
     std::vector<double> rhs;
     grid.scalars["Temp"] = &rhs;
+
+    std::cout << grid;
 
     fill_system(grid, irn, jcn, A, rhs);
     if(matlab)
@@ -167,17 +166,18 @@ int main(int argc, char *argv[])
     init_MUMPS(id);
 
     // test arguments
-    if(argc!=2)
+    if(argc>2)
     {
         if (get_my_rank() == 0)
-            std::cout << "usage: " << argv[0] << " parameters.json" << std::endl;
+            std::cout << "usage: " << argv[0] << " [parameters.json]" << std::endl;
         MPI_Finalize();
         return 1;
     }
 
     // read parameters
     rapidjson::Document d;
-    read_json(argv[1], d);
+    if(argc==2)
+        read_json(argv[1], d);
 
     // split work among processes
     if (get_my_rank() == 0)

@@ -28,8 +28,6 @@ int main(int argc, char *argv[])
     // creation of dummy fields
     int nbp = grid.nbp();
 
-    std::cout << nbp << " points created\n";
-
     std::vector<double> scalarX(nbp);
     std::vector<double> scalarY(nbp);
     std::vector<double> scalarZ(nbp);
@@ -39,6 +37,8 @@ int main(int argc, char *argv[])
     grid.scalars["scalar_Y"] = &scalarY;
     grid.scalars["scalar_Z"] = &scalarZ;
     grid.vectors["vector_SIN"] = &vectorSIN;
+
+    std::cout << grid;
 
     // time step loop
     for (int nstep = 0; nstep < nstepT; ++nstep)
