@@ -11,7 +11,8 @@ SPoints::SPoints() : id(-1), o(), np1(), np2(), dx()
 VTL_API std::ostream &
 operator<<(std::ostream &out, SPoints const &obj)
 {
-    out << "SPoints: np=" << obj.np() << "\n";
+    out << "SPoints: (" << obj.nbp() << " pts - " << obj.nbc() << " cells)\n";
+    out << "\tnp = " << obj.np() << "\n";
     out << "\to = " << obj.o << '\n';
     out << "\tL = " << obj.L() << '\n';
     out << "\trange = ["
@@ -19,6 +20,27 @@ operator<<(std::ostream &out, SPoints const &obj)
               << obj.np1[1] << '-' << obj.np2[1] << ", "
               << obj.np1[2] << '-' << obj.np2[2] << "]\n";
     out << "\tdx = " << obj.dx << '\n';
+    
+    out << "\tscalars = ";
+    for(auto const &p : obj.scalars)
+        out << "\"" << p.first << "\" ";
+    out << '\n';
+
+    out << "\tvectors = ";
+    for(auto const &p : obj.vectors)
+        out << "\"" << p.first << "\" ";
+    out << '\n';
+
+    out << "\tcscalars = ";
+    for(auto const &p : obj.cscalars)
+        out << "\"" << p.first << "\" ";
+    out << '\n';
+
+    out << "\tcvectors = ";
+    for(auto const &p : obj.cvectors)
+        out << "\"" << p.first << "\" ";
+    out << '\n';
+
     return out;
 }
 
