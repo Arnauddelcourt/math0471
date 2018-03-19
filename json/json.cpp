@@ -1,105 +1,112 @@
-// JSON simple example
-// This example does not handle errors.
+#include "json.h"
 
 #include "rapidjson/document.h"
+#include "rapidjson/error/en.h"
 #include "rapidjson/writer.h"
 #include "rapidjson/prettywriter.h"
-//#include <rapidjson/istreamwrapper.h>
 #include "rapidjson/stringbuffer.h"
 #include <iostream>
-#include "rapidjson/filereadstream.h"
 #include <cstdio>
 
-using namespace rapidjson;
-
-int main(int argc, char **argv) 
+JSON_API void read_json(std::string const &fname, rapidjson::Document &d)
 {
-    if(argc!=2)
-    {
-        std::cout << "usage: " << argv[0] << " file.json" << std::endl;
-        return 1;
-    }
-/*
-    // not available in ubuntu 14.04LTS
-    std::ifstream ifs("test1.json");
-    IStreamWrapper isw(ifs);
-    Document d;
-    d.ParseStream(isw);
-*/
-    FILE* fp = fopen(argv[1], "rb"); // non-Windows use "r"
+    FILE* fp = fopen(fname.c_str(), "rb"); // non-Windows use "r"
     if(!fp)
     {
-        std::cout << "file " << argv[1] << " not found!"<< std::endl;
-        return 1;
+        std::cout << "file " << fname << " not found!"<< std::endl;
+        abort();
     }
 
     fseek(fp, 0, SEEK_END);
     size_t length = static_cast<size_t>(ftell(fp));
-    std::cout << "file size = " << length << std::endl;
+    //std::cout << "file size = " << length << std::endl;
     fseek(fp, 0, SEEK_SET);
     char* readBuffer = static_cast<char*>(malloc(length + 1));
     size_t readLength = fread(readBuffer, 1, length, fp);
     readBuffer[readLength] = '\0';
     fclose(fp);
 
-    Document d;
-    d.Parse(readBuffer);
+    d.Parse<rapidjson::kParseCommentsFlag>(readBuffer);
 
-    // using FileReadStream
-    //char readBuffer[65536];
-    //FileReadStream is(fp, readBuffer, sizeof(readBuffer));
-    //Document d;
-    //d.ParseStream(is);
+    if(d.HasParseError())
+    {
+        std::cout << "ERROR: json document cannot be parsed!" << std::endl;
+        std::cout << "\t Parse Error " << d.GetParseError() << " (" << GetParseError_En(d.GetParseError()) << ")" << std::endl;
+        std::cout << "\t Error offset = " << d.GetErrorOffset() << std::endl;
+        abort();
+    }    
 
-    // stringify the DOM
-    StringBuffer buffer;
-    //Writer<StringBuffer> writer(buffer);
-    PrettyWriter<StringBuffer> writer(buffer);
-    d.Accept(writer);
-
-    // print DOM
-    std::cout << buffer.GetString() << std::endl;
-    
-    // check root object
     if(!d.IsObject())
     {
-        std::cout << "ERROR: document is not an object!" << std::endl;
-        return 1;
+        std::cout << "ERROR: json document is not an object!" << std::endl;
+        abort();
     }
-    // get a bool
-    if(!d.HasMember("matlab"))
-    {
-        std::cout << "ERROR: document does not contain \"matlab\"!" << std::endl;
-        return 1;
-    }
-    if(!d["matlab"].IsBool())
-    {
-        std::cout << "ERROR: \"matlab\" is not a boolean!" << std::endl;
-        return 1;
-    }
+}
 
-    std::cout << "matlab = " << (d["matlab"].GetBool()? "true":"false") << std::endl;
+JSON_API bool read_bool(rapidjson::Document const &d, char const *name, bool def)
+{
+    if(d.HasMember(name))
+    {
+        if(!d[name].IsBool())
+        {
+            std::cout << "ERROR: \"" << name << "\" should be a bool" << std::endl;
+            abort(); 
+        }
+        return d[name].GetBool();
+    }
+    return def;
+}
 
-    // get a vector
-    if(!d.HasMember("grid.o"))
+JSON_API Vec3d read_Vec3d(rapidjson::Document const &d, char const *name, Vec3d const &def)
+{
+    if(d.HasMember(name))
     {
-        std::cout << "ERROR: document does not contain \"grid.o\"!" << std::endl;
-        return 1;
+        if(!d[name].IsArray())
+        {
+            std::cout << "ERROR: \"" << name << "\" should be an array" << std::endl;
+            abort(); 
+        }
+        if(d[name].Size()!=3)
+        {
+            std::cout << "ERROR: wrong array size for \"" << name <<"\"!" << std::endl;
+            abort(); 
+        }
+        for(rapidjson::SizeType i = 0; i < d[name].Size(); i++)
+        {
+            if(!d[name][i].IsNumber())
+            {
+                std::cout << "ERROR: array \"" << name <<"\" does not contain numbers!" << std::endl;
+                abort();
+            }
+        }
+        return Vec3d(d[name][0].GetDouble(), d[name][1].GetDouble(), d[name][2].GetDouble());
     }
-    if(!d["grid.o"].IsArray())
-    {
-        std::cout << "ERROR: \"grid.o\" should be an array!" << std::endl;
-        return 1;
-    }
-    if(d["grid.o"].Size()!=3)
-    {
-        std::cout << "ERROR: wrong array size for \"grid.o\"!" << std::endl;
-        return 1;
-    }
-    std::cout << "grid.o = (" << d["grid.o"][0].GetDouble() << ", "
-        << d["grid.o"][1].GetDouble() << ", "
-        << d["grid.o"][2].GetDouble() << ")" 
-        << std::endl;
+    return def;
+}
 
-    return 0;
+JSON_API Vec3i read_Vec3i(rapidjson::Document const &d, char const *name, Vec3i const &def)
+{
+    if(d.HasMember(name))
+    {
+        if(!d[name].IsArray())
+        {
+            std::cout << "ERROR: \"" << name << "\" should be an array" << std::endl;
+            abort(); 
+        }
+        if(d[name].Size()!=3)
+        {
+            std::cout << "ERROR: wrong array size for \"" << name <<"\"!" << std::endl;
+            abort(); 
+        }
+        for(rapidjson::SizeType i = 0; i < d[name].Size(); i++)
+        {
+            if(!d[name][i].IsInt())
+            {
+                std::cout << "ERROR: array \"" << name <<"\" does not contain integers!" << std::endl;
+                abort();
+            }
+        }
+        return Vec3i(d[name][0].GetInt(), d[name][1].GetInt(), d[name][2].GetInt());
+    }
+    return def;
 }

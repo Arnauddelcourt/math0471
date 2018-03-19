@@ -3,8 +3,8 @@
 #include "vtl_spoints.h"
 #include "vtlSPoints.h"
 #include "laplace.h"
-#include "readpars.h"
-#include "rapidjson/document.h"
+#include "json.h"
+//#include "rapidjson/document.h"
 
 // from c_example.c ------
 #include "mpi.h"
