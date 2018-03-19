@@ -9,10 +9,6 @@
 #include <iostream>
 #include <map>
 #include <cmath>
-//#include <cassert>
-//#include <stdlib.h>
-
-//using namespace vtl;
 
 int main(int argc, char *argv[])
 {

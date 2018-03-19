@@ -1,21 +1,10 @@
 // solves a Laplacian over a cube with mumps
 
-#include "vtl.h"
-#include "vtlSPoints.h"
 #include "vtl_spoints.h"
+#include "vtlSPoints.h"
 #include "laplace.h"
 #include "readpars.h"
-
-#include <string>
-#include <vector>
-#include <iostream>
-#include <fstream>
-#include <map>
-#include <cmath>
-
 #include "rapidjson/document.h"
-
-//using namespace vtl;
 
 // from c_example.c ------
 #include "mpi.h"

@@ -3,9 +3,6 @@
 
 #include "vtl.h"
 
-//namespace vtl
-//{
-
 VTL_API void export_spoints_LEGACY(std::string const &filename,
                                    int step, 
                                    SPoints const &grid,
@@ -23,7 +20,6 @@ VTL_API void export_spoints_XMLP(std::string const &filename,
                                  SPoints const &mygrid,
                                  std::vector<SPoints> const &sgrids,
                                  Zip zip);
-//}
 
 #endif // VTL_SPOINTS_H
 

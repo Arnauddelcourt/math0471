@@ -20,16 +20,16 @@
 
 #include <string>
 #include <vector>
+#include <fstream>
 #include <map>
 #define _USE_MATH_DEFINES // otherwise, M_PI undefined in VS
 #include <math.h>
 
-#include "vtlSPoints.h"
+//#include "vtlSPoints.h"
 /**
  * @brief VTL: "VTK Lite" - tools for exporting results to Paraview 
  */
-//namespace vtl
-//{
+
 class SPoints;
 
 /// Format used by the export functions
@@ -60,7 +60,5 @@ void write_vector_LEGACY(std::ofstream &f, std::vector<double> const &pos, int n
 std::string zlibstatus(int status);
 size_t write_vectorXML(std::ofstream &f, std::vector<double> const &pos, bool usez);
 size_t write_vectorXML(std::ofstream &f, std::vector<int> const &pos, bool usez);
-
-//}
 
 #endif // VTL_H

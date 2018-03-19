@@ -13,8 +13,6 @@
 #include "swapbytes.h"
 #include "vtlSPoints.h"
 
-//using namespace vtl;
-
 #ifdef USE_ZLIB
 #include <zlib.h>
 #else
@@ -22,9 +20,6 @@
 #define uLong size_t
 #define uLongf size_t
 #endif
-
-static const int __one__ = 1;
-static const bool isCpuLittleEndian = 1 == *(char *)(&__one__); // CPU endianness
 
 /**
  * @brief this routine writes a vector of double as a vector of float to a legacy VTK file f.
@@ -47,7 +42,7 @@ void write_vector_LEGACY(std::ofstream &f, std::vector<double> const &pos, int n
     }
     else
     {
-        if (isCpuLittleEndian)
+        if (isCpuLittleEndian())
             for (int i = 0; i < nbp; ++i)
             {
                 // float+little endian => double should be converted to float, then swapped

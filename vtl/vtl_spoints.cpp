@@ -1,4 +1,5 @@
-#include "vtl.h"
+#include "vtl_spoints.h"
+#include "vtlSPoints.h"
 #include <fstream>
 #include <sstream>
 #include <iomanip>
@@ -11,13 +12,6 @@
 #include <cmath>
 #include <cassert>
 #include "swapbytes.h"
-#include "vtlSPoints.h"
-#include "vtl_spoints.h"
-
-
-//using namespace vtl;
-static const int __one__ = 1;
-static const bool isCpuLittleEndian = 1 == *(char *)(&__one__); // CPU endianness
 
 // --------------------------------------------------------------------------------------------
 
@@ -146,7 +140,7 @@ VTL_API void export_spoints_XML(std::string const &filename,
     f << "<?xml version=\"1.0\"?>\n";
 
     f << "<VTKFile type=\"ImageData\" version=\"0.1\" byte_order=\"";
-    f << (isCpuLittleEndian ? "LittleEndian" : "BigEndian") << "\" ";
+    f << (isCpuLittleEndian() ? "LittleEndian" : "BigEndian") << "\" ";
     f << "header_type=\"UInt32\" "; // UInt64 could be better (?)
     if (zip == Zip::ZIPPED)
         f << "compressor=\"vtkZLibDataCompressor\" ";
@@ -281,7 +275,7 @@ VTL_API void export_spoints_XMLP(std::string const &filename,
     f << "<?xml version=\"1.0\"?>\n";
 
     f << "<VTKFile type=\"PImageData\" version=\"0.1\" byte_order=\"";
-    f << (isCpuLittleEndian ? "LittleEndian" : "BigEndian") << "\" ";
+    f << (isCpuLittleEndian() ? "LittleEndian" : "BigEndian") << "\" ";
     f << "header_type=\"UInt32\" "; // UInt64 should be better
     if (zip == Zip::ZIPPED)
         f << "compressor=\"vtkZLibDataCompressor\" ";

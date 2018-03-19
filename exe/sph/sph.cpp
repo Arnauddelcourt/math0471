@@ -1,15 +1,6 @@
 #include "cube.h"
-#include "vtl.h"
 #include "vtl_polydata.h"
-
-#include <string>
-#include <vector>
 #include <iostream>
-#include <map>
-#include <cmath>
-#include <cassert>
-
-//using namespace vtl;
 
 /**
  * @brief Dummy SPH simulation testing paraview export formats

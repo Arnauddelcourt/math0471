@@ -6,22 +6,13 @@
 //         [windows - microsoft mpi]
 //         mpiexec -np 2 bin\fdtd_mpi
 
-#include "vtl.h"
-#include "vtlSPoints.h"
 #include "vtl_spoints.h"
+#include "vtlSPoints.h"
 
-#include <string>
-#include <vector>
 #include <iostream>
-#include <map>
-#include <cmath>
-#include <cassert>
-
 #include <mpi.h>
 #include <omp.h>
 #include <stdlib.h>
-
-//using namespace vtl;
 
 int main(int argc, char *argv[])
 {

@@ -45,4 +45,6 @@ inline uint64_t swap_uint64(uint64_t val)
     return (val << 32) | (val >> 32);
 }
 
+bool isCpuLittleEndian();
+
 #endif //SWAPBYTES_H

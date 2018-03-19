@@ -8,8 +8,6 @@
 #include <iostream>
 #include <cstdio>
 
-//using namespace vtl;
-
 void read_json(std::string const &fname, rapidjson::Document &d)
 {
     FILE* fp = fopen(fname.c_str(), "rb"); // non-Windows use "r"
@@ -37,7 +35,6 @@ void read_json(std::string const &fname, rapidjson::Document &d)
         std::cout << "\t Error offset = " << d.GetErrorOffset() << std::endl;
         abort();
     }    
-
 
     if(!d.IsObject())
     {

@@ -4,8 +4,6 @@
 #include <sstream>
 #include <iomanip>
 
-//using namespace vtl;
-
 SPoints::SPoints() : id(-1), o(), np1(), np2(), dx()
 {
 }

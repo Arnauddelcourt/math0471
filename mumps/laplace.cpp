@@ -3,15 +3,6 @@
 #include "laplace.h"
 #include "vtlSPoints.h"
 
-#include <string>
-#include <vector>
-#include <iostream>
-#include <fstream>
-#include <map>
-#include <cmath>
-
-//using namespace vtl;
-
 /**
  * @brief fills a basic distretised-Laplace system of equations.
  *        Particular Dirichlet and Neumann BCs are implemented.

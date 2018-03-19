@@ -14,8 +14,6 @@
 #include "vtlSPoints.h"
 #include "vtl_spoints.h"
 
-static const int __one__ = 1;
-static const bool isCpuLittleEndian = 1 == *(char *)(&__one__); // CPU endianness
 
 
 /**
@@ -66,10 +64,11 @@ void export_polydata_LEGACY(std::string const &filename,
     }
     else
     {
-        int32_t type = isCpuLittleEndian ? swap_int32(1) : 1;
+        bool lendian = isCpuLittleEndian();
+        int32_t type = lendian ? swap_int32(1) : 1;
         for (int i = 0; i < nbp; ++i)
         {
-            int32_t ii = isCpuLittleEndian ? swap_int32(i) : i;
+            int32_t ii = lendian ? swap_int32(i) : i;
             f.write((char *)&type, sizeof(int));
             f.write((char *)&ii, sizeof(int));
         }
@@ -143,7 +142,7 @@ void export_polydata_XML(std::string const &filename,
     size_t offset = 0;
     // header
     f << "<VTKFile type=\"PolyData\" version=\"0.1\" byte_order=\"";
-    f << (isCpuLittleEndian ? "LittleEndian" : "BigEndian") << "\" ";
+    f << (isCpuLittleEndian() ? "LittleEndian" : "BigEndian") << "\" ";
     f << "header_type=\"UInt32\" "; // UInt64 should be better
     if (usez)
         f << "compressor=\"vtkZLibDataCompressor\" ";
