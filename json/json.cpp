@@ -85,6 +85,20 @@ JSON_API double read_double(rapidjson::Document const &d, char const *name, doub
     return def;
 }
 
+JSON_API std::string read_string(rapidjson::Document const &d, char const *name, std::string const &def)
+{
+    if(d.HasMember(name))
+    {
+        if(!d[name].IsString())
+        {
+            std::cout << "ERROR: \"" << name << "\" should be a string" << std::endl;
+            abort(); 
+        }
+        return d[name].GetString();
+    }
+    return def;
+}
+
 JSON_API Vec3d read_Vec3d(rapidjson::Document const &d, char const *name, Vec3d const &def)
 {
     if(d.HasMember(name))

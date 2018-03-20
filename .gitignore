@@ -7,7 +7,7 @@ build/
 *.bak
 .vscode/
 
-*.vtk
-*.vti
-*.vtp
-*.vtu
+#*.vtk
+#*.vti
+#*.vtp
+#*.vtu

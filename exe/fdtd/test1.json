@@ -3,9 +3,10 @@
     "grid.L" : [50.0, 60.0, 80.0],
     "grid.np1" : [0, 0, 0],
     "grid.np2" : [25, 30, 40],
-    "nstepT" : 2,
-    //"write.legacy.text" : true,
-    //"write.legacy.bin" : true,
-    //"write.xml.bin" : true,
-    "write.xml.binz" : true
+    "nstepT" : 1,
+    "write.legacy.text" : true,
+    "write.legacy.bin" : false,
+    "write.xml.bin" : false,
+    "write.xml.binz" : false,
+    "output.prefix" : "test1" 
 }

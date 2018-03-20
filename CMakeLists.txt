@@ -50,8 +50,7 @@ else (DOXYGEN_FOUND)
 endif (DOXYGEN_FOUND)
 # ------------------------------------------------------------------------
 
-
-
+enable_testing()
 
 ADD_SUBDIRECTORY( tools )
 ADD_SUBDIRECTORY( vtl )
@@ -61,6 +60,4 @@ ADD_SUBDIRECTORY( exe/fdtd )
 ADD_SUBDIRECTORY( exe/fdtd_mpi )
 ADD_SUBDIRECTORY( mumps )
 
-# -- CTest
-enable_testing()
 ADD_SUBDIRECTORY( tests )

@@ -9,7 +9,7 @@ int main(int argc, char *argv[])
 {
     rapidjson::Document d;
     // read parameters
-    if(argc>1)
+    if(argc>1) 
         read_json(argv[1], d);
 
     // Global grid parameters
@@ -95,15 +95,16 @@ int main(int argc, char *argv[])
             }
         }
 
+        std::string prefix = read_string(d, "output.prefix", "fdtd");
         // save results to disk
-        if(read_bool(d, "write.legacy.text", false))
-            export_spoints_LEGACY("fdtd_t", nstep, grid, Mode::TEXT);
-        if(read_bool(d, "write.legacy.bin", false))
-            export_spoints_LEGACY("fdtd_b", nstep, grid, Mode::BINARY);
-        if(read_bool(d, "write.xml.bin", false))
-            export_spoints_XML("fdtd", nstep, grid, grid, Zip::UNZIPPED);
-        if(read_bool(d, "write.xml.binz", false))
-            export_spoints_XML("fdtdz", nstep, grid, grid, Zip::ZIPPED);
+        if(read_bool(d, "write.legacy.text", true))
+            export_spoints_LEGACY(prefix+"_t", nstep, grid, Mode::TEXT);
+        if(read_bool(d, "write.legacy.bin", true))
+            export_spoints_LEGACY(prefix+"_b", nstep, grid, Mode::BINARY);
+        if(read_bool(d, "write.xml.bin", true))
+            export_spoints_XML(prefix, nstep, grid, grid, Zip::UNZIPPED);
+        if(read_bool(d, "write.xml.binz", true))
+            export_spoints_XML(prefix+"z", nstep, grid, grid, Zip::ZIPPED);
     }
 
     return 0;
