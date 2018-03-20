@@ -5,20 +5,66 @@
 #include "json.h"
 #include <iostream>
 
+bool same_files(std::string const &lFilePath, std::string const &rFilePath)
+{
+    const int BUFFER_SIZE = 1024 * 1024;
+
+    std::ifstream lFile(lFilePath.c_str(), std::ifstream::in | std::ifstream::binary);
+    std::ifstream rFile(rFilePath.c_str(), std::ifstream::in | std::ifstream::binary);
+
+    if (!lFile.is_open() || !rFile.is_open())
+    {
+        std::cout << "unable to open files\n";
+        return false;
+    }
+
+    char *lBuffer = new char[BUFFER_SIZE];
+    char *rBuffer = new char[BUFFER_SIZE];
+
+    do
+    {
+        lFile.read(lBuffer, BUFFER_SIZE);
+        rFile.read(rBuffer, BUFFER_SIZE);
+        auto lread = lFile.gcount();
+        auto rread = rFile.gcount();
+
+        if (lread != rread || std::memcmp(lBuffer, rBuffer, lread) != 0)
+        {
+            delete[] lBuffer;
+            delete[] rBuffer;
+            return false;
+        }
+    } while (lFile.good() || rFile.good());
+
+    delete[] lBuffer;
+    delete[] rBuffer;
+    return true;
+}
+
 int main(int argc, char *argv[])
 {
+/*
+    std::string file1="A.vtk";
+    std::string file2="B.vtk";
+    
+    if(same_files(file1, file2))
+        std::cout << "files are the same\n";
+    else
+        std::cout << "files are different\n";
+    return 1;
+*/
     rapidjson::Document d;
     // read parameters
-    if(argc>1) 
+    if (argc > 1)
         read_json(argv[1], d);
 
     // Global grid parameters
 
     SPoints grid;
-    grid.o = read_Vec3d(d, "grid.o", Vec3d(10.0, 10.0, 10.0));      // origin
-    Vec3d L = read_Vec3d(d, "grid.L", Vec3d(50.0, 60.0, 80.0));     // box dimensions
-    grid.np1 = read_Vec3i(d, "grid.np1", Vec3i(0, 0, 0));           // first index
-    grid.np2 = read_Vec3i(d, "grid.np2", Vec3i(25, 30, 40));        // last index
+    grid.o = read_Vec3d(d, "grid.o", Vec3d(10.0, 10.0, 10.0));  // origin
+    Vec3d L = read_Vec3d(d, "grid.L", Vec3d(50.0, 60.0, 80.0)); // box dimensions
+    grid.np1 = read_Vec3i(d, "grid.np1", Vec3i(0, 0, 0));       // first index
+    grid.np2 = read_Vec3i(d, "grid.np2", Vec3i(25, 30, 40));    // last index
 
     grid.dx = L / (grid.np() - 1); // compute spacing
 
@@ -97,14 +143,14 @@ int main(int argc, char *argv[])
 
         std::string prefix = read_string(d, "output.prefix", "fdtd");
         // save results to disk
-        if(read_bool(d, "write.legacy.text", true))
-            export_spoints_LEGACY(prefix+"_t", nstep, grid, Mode::TEXT);
-        if(read_bool(d, "write.legacy.bin", true))
-            export_spoints_LEGACY(prefix+"_b", nstep, grid, Mode::BINARY);
-        if(read_bool(d, "write.xml.bin", true))
+        if (read_bool(d, "write.legacy.text", true))
+            export_spoints_LEGACY(prefix + "_t", nstep, grid, Mode::TEXT);
+        if (read_bool(d, "write.legacy.bin", true))
+            export_spoints_LEGACY(prefix + "_b", nstep, grid, Mode::BINARY);
+        if (read_bool(d, "write.xml.bin", true))
             export_spoints_XML(prefix, nstep, grid, grid, Zip::UNZIPPED);
-        if(read_bool(d, "write.xml.binz", true))
-            export_spoints_XML(prefix+"z", nstep, grid, grid, Zip::ZIPPED);
+        if (read_bool(d, "write.xml.binz", true))
+            export_spoints_XML(prefix + "z", nstep, grid, grid, Zip::ZIPPED);
     }
 
     return 0;

@@ -8,5 +8,6 @@
     "write.legacy.bin" : false,
     "write.xml.bin" : false,
     "write.xml.binz" : false,
-    "output.prefix" : "test1" 
+    "output.prefix" : "test1",
+    "test.ref" : "test1.out" 
 }
