@@ -49,6 +49,7 @@ if(NOT MUMPS_INCLUDE_DIRS)
     message(FATAL_ERROR "MUMPS include dir not found!")
 endif()
 include_directories(${MUMPS_INCLUDE_DIRS})
+
 # mumps libs
 set(MUMPS_LIBRARIES "")
 
@@ -66,6 +67,31 @@ endforeach()
 
 target_link_libraries(test_mumps ${MUMPS_LIBRARIES})
 
+# METIS/ParMETIS ----------------------------------------------------------- 
+MESSAGE("Looking for METIS/ParMETIS...")
+find_path(METIS_INCLUDE_DIRS NAMES "metis.h")
+message(STATUS "METIS_INCLUDE_DIRS=" ${METIS_INCLUDE_DIRS})
+if(NOT METIS_INCLUDE_DIRS)
+    message(FATAL_ERROR "METIS include dir not found!")
+endif()
+include_directories(${METIS_INCLUDE_DIRS})
+
+# metis libs
+set(METIS_LIBRARIES "")
+
+# METIS libs to be found
+SET(_METIS_LIBSET parmetis metis)
+
+foreach(LIB ${_METIS_LIBSET})
+    find_library(FOUND_LIB ${LIB})
+    MESSAGE(STATUS "${LIB}=${FOUND_LIB}")
+    if(FOUND_LIB)
+        list(APPEND METIS_LIBRARIES ${FOUND_LIB})
+    endif()
+    unset(FOUND_LIB CACHE)
+endforeach()
+
+target_link_libraries(test_mumps ${METIS_LIBRARIES})
 
 # MKL libs ------------------
 MESSAGE("Looking for MKL...")
